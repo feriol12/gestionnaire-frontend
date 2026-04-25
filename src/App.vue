@@ -1,26 +1,36 @@
-<script setup>
+<!-- <script setup>
 import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
+</script> -->
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
+  
 
   <RouterView />
+   <AppToast ref="toastComponent" />
+
 </template>
 
-<style scoped>
+
+<script setup>
+import { RouterView, RouterLink } from 'vue-router'
+import AppToast from '@/components/common/AppToast.vue'
+import { registerToast } from '@/composables/useToast'
+import { onMounted, ref } from 'vue'
+
+const toastComponent = ref(null)
+
+// Enregistrer l'instance du toast quand le composant est monté
+onMounted(() => {
+   console.log('Toast component:', toastComponent.value) // Debug
+  if (toastComponent.value) {
+    registerToast(toastComponent.value)
+     console.log('Toast enregistré avec succès ✅')
+  } else {
+    console.error('Toast non trouvé ❌')
+  }
+})
+</script>
+<!-- <style scoped>
 header {
   line-height: 1.5;
   max-height: 100vh;
@@ -82,4 +92,4 @@ nav a:first-of-type {
     margin-top: 1rem;
   }
 }
-</style>
+</style> -->
