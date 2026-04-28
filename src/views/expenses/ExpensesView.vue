@@ -1,0 +1,221 @@
+<!-- src/views/expenses/ExpensesView.vue -->
+<template>
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      
+      <!-- ========== EN-TÊTE ========== -->
+      <div class="mb-8">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 class="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
+              Mes dépenses
+            </h1>
+            <p class="text-slate-500 mt-1">Suivez et gérez toutes vos dépenses</p>
+          </div>
+          
+          <button 
+            @click="openModal = true"
+            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Nouvelle dépense
+          </button>
+        </div>
+      </div>
+      
+      <!-- ========== CARTES STATISTIQUES ========== -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <!-- Aujourd'hui -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+              <span class="text-xl">💰</span>
+            </div>
+            <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-full">Aujourd'hui</span>
+          </div>
+          <p class="text-2xl font-bold text-slate-800">{{ formatAmount(summary.today) }}</p>
+          <p class="text-xs text-slate-400 mt-1">dépenses du jour</p>
+        </div>
+        
+        <!-- Ce mois -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
+              <span class="text-xl">📅</span>
+            </div>
+            <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-full">Ce mois</span>
+          </div>
+          <p class="text-2xl font-bold text-slate-800">{{ formatAmount(summary.this_month) }}</p>
+          <p class="text-xs text-slate-400 mt-1">dépenses mensuelles</p>
+        </div>
+        
+        <!-- Mois dernier -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
+              <span class="text-xl">📆</span>
+            </div>
+            <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-full">Mois dernier</span>
+          </div>
+          <p class="text-2xl font-bold text-slate-800">{{ formatAmount(summary.last_month) }}</p>
+          <p class="text-xs text-slate-400 mt-1">mois précédent</p>
+        </div>
+        
+        <!-- Cette année -->
+        <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
+          <div class="flex items-center justify-between mb-3">
+            <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
+              <span class="text-xl">📊</span>
+            </div>
+            <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-full">Annuel</span>
+          </div>
+          <p class="text-2xl font-bold text-slate-800">{{ formatAmount(summary.this_year) }}</p>
+          <p class="text-xs text-slate-400 mt-1">total de l'année</p>
+        </div>
+      </div>
+      
+      <!-- ========== SECTION FILTRES + TABLEAU ========== -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        
+        <!-- Barre d'outils -->
+        <div class="px-6 py-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div class="flex items-center gap-3">
+            <div class="w-1 h-6 bg-blue-500 rounded-full"></div>
+            <h2 class="text-lg font-semibold text-slate-700">Liste des dépenses</h2>
+          </div>
+          
+          <PeriodFilter :period="currentPeriod" @update:period="handlePeriodChange" />
+        </div>
+        
+        <!-- Tableau -->
+        <ExpenseTable
+          :expenses="expenses"
+          :loading="expenseStore.loading"
+          :show-add-button="false"
+          @edit="editExpense"
+          @delete="confirmDelete"
+        />
+        
+      </div>
+      
+      <!-- ========== MODALES ========== -->
+      <ExpenseForm 
+        :open="openModal" 
+        :expense="selectedExpense"
+        @close="closeModal" 
+        @saved="refreshData"
+      />
+      
+      <!-- Modale confirmation suppression -->
+      <div v-if="showDeleteModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all">
+          <div class="text-center">
+            <div class="w-12 h-12 mx-auto bg-red-100 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-slate-900 mb-2">Confirmer la suppression</h3>
+            <p class="text-sm text-slate-500 mb-6">
+              Êtes-vous sûr de vouloir supprimer<br>
+              "<strong class="text-slate-700">{{ expenseToDelete?.description }}</strong>" ?
+            </p>
+            <div class="flex justify-center gap-3">
+              <button 
+                @click="showDeleteModal = false"
+                class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+              >
+                Annuler
+              </button>
+              <button 
+                @click="deleteExpense"
+                :disabled="deleting"
+                class="px-4 py-2 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-50"
+              >
+                {{ deleting ? 'Suppression...' : 'Supprimer' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useExpenseStore } from '@/stores/useExpenseStore';
+import PeriodFilter from '@/components/common/PeriodFilter.vue';
+import ExpenseTable from '@/components/expenses/ExpenseTable.vue';
+import ExpenseForm from '@/components/expenses/ExpenseForm.vue';
+
+// ========== STORE ==========
+const expenseStore = useExpenseStore();
+
+// ========== STATE ==========
+const openModal = ref(false);
+const selectedExpense = ref(null);
+const showDeleteModal = ref(false);
+const expenseToDelete = ref(null);
+const deleting = ref(false);
+const currentPeriod = ref('month');
+
+// ========== COMPUTED ==========
+const expenses = computed(() => expenseStore.expenses);
+const summary = computed(() => expenseStore.summary);
+
+// ========== MÉTHODES ==========
+const refreshData = async () => {
+  await Promise.all([
+    expenseStore.fetchExpenses(currentPeriod.value),
+    expenseStore.fetchSummary()
+  ]);
+};
+
+const handlePeriodChange = (period) => {
+  currentPeriod.value = period;
+  expenseStore.fetchExpenses(period);
+};
+
+const formatAmount = (amount) => {
+  if (amount === undefined || amount === null) return '0,00 €';
+  const num = parseFloat(amount);
+  return new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num) + ' €';
+};
+
+const editExpense = (expense) => {
+  selectedExpense.value = expense;
+  openModal.value = true;
+};
+
+const closeModal = () => {
+  openModal.value = false;
+  selectedExpense.value = null;
+};
+
+const confirmDelete = (expense) => {
+  expenseToDelete.value = expense;
+  showDeleteModal.value = true;
+};
+
+const deleteExpense = async () => {
+  deleting.value = true;
+  const result = await expenseStore.deleteExpense(expenseToDelete.value.id);
+  
+  if (result.success) {
+    showDeleteModal.value = false;
+    expenseToDelete.value = null;
+    await refreshData();
+  }
+  
+  deleting.value = false;
+};
+
+// ========== LIFECYCLE ==========
+onMounted(() => {
+  refreshData();
+});
+</script>
