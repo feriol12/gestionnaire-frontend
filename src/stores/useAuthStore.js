@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { authApi } from '@/services/apiAuth';
 
 export const useAuthStore = defineStore('auth', () => {
@@ -8,9 +8,12 @@ export const useAuthStore = defineStore('auth', () => {
   const token = ref(localStorage.getItem('token') || null);
   const loading = ref(false);
   
-  // Getters
-  const isAuthenticated = () => !!token.value && !!user.value;
+  // // Getters
+  // const isAuthenticated = () => !!token.value && !!user.value;
   
+   // Getters - utilise computed au lieu d'une fonction
+  const isAuthenticated = computed(() => !!token.value && !!user.value);
+  const userName = computed(() => user.value?.name || '');
   // Actions
   const register = async (userData) => {
     loading.value = true;
@@ -22,6 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = response.data.token;
         user.value = response.data.user;
         localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user)); // ← Ajoute aussi le user
       }
       
       return { success: true, data: response.data };
@@ -56,6 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = response.data.token;
         user.value = response.data.user;
         localStorage.setItem('token', response.data.token);
+         localStorage.setItem('user', JSON.stringify(response.data.user)); // ← Ajoute aussi le user
       }
       
       return { success: true, data: response.data };
@@ -78,6 +83,7 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = null;
       user.value = null;
       localStorage.removeItem('token');
+      localStorage.removeItem('user'); // ← Ajoute aussi le user
     }
   };
   
@@ -98,6 +104,7 @@ export const useAuthStore = defineStore('auth', () => {
     token,
     loading,
     isAuthenticated,
+    userName,         // Ajoute ce getter
     register,
     login,
     logout,

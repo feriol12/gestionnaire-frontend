@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 import RegisterVue from '@/views/auth/RegisterVue.vue'
 import LoginVue from '@/views/auth/LoginVue.vue'
 import { useAuthStore } from '@/stores/useAuthStore'; 
+import MainLayout from '@/components/layout/MainLayout.vue';
+import DashboardView from '@/views/DashboardView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -25,6 +27,29 @@ const router = createRouter({
       component: LoginVue,
       meta: { guest: true } // accessible seulement si non connecté
     },
+    //  Routes protégées (avec navbar)
+    {
+      path: '/',
+      component: MainLayout,
+      meta: { requiresAuth: true },
+      children: [
+        {
+          path: 'dashboard',
+          name: 'dashboard',
+          component: DashboardView,
+        },
+        // La route expenses sera ajoutée quand son composant sera prêt
+        // {
+        //   path: 'expenses',
+        //   name: 'expenses',
+        //   component: () => import('@/views/ExpensesView.vue'),
+        // },
+      ]
+    },
+     {
+      // path: '/',
+      redirect: '/dashboard'
+    },
     {
       path: '/about',
       name: 'about',
@@ -33,6 +58,8 @@ const router = createRouter({
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
+
+
   ],
 
 })
