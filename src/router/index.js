@@ -1,7 +1,9 @@
+// router/index.js (modifications minimales)
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import RegisterVue from '@/views/auth/RegisterVue.vue'
 import LoginVue from '@/views/auth/LoginVue.vue'
+import ExpensesView from '@/views/expenses/ExpensesView.vue'  // ← AJOUT
 import { useAuthStore } from '@/stores/useAuthStore'; 
 import MainLayout from '@/components/layout/MainLayout.vue';
 import DashboardView from '@/views/DashboardView.vue'
@@ -21,7 +23,7 @@ const router = createRouter({
       meta: { guest: true } // accessible seulement si non connecté
 
     },
-      {
+    {
       path: '/login',
       name: 'login',
       component: LoginVue,
@@ -51,11 +53,13 @@ const router = createRouter({
       redirect: '/dashboard'
     },
     {
+      path: '/expenses',           // ← AJOUT (sans guard, ton ami le fera)
+      name: 'expenses',
+      component: ExpensesView,
+    },
+    {
       path: '/about',
       name: 'about',
-      // route level code-splitting
-      // this generates a separate chunk (About.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
 
