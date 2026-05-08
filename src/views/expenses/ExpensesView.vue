@@ -13,15 +13,17 @@
             <p class="text-slate-500 mt-1">Suivez et gérez toutes vos dépenses</p>
           </div>
           
-          <button 
+          <AppButton 
+            variant="primary"
             @click="openModal = true"
-            class="inline-flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold transition-all duration-200 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
           >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            Nouvelle dépense
-          </button>
+            <template #default>
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Nouvelle dépense
+            </template>
+          </AppButton>
         </div>
       </div>
       
@@ -86,7 +88,10 @@
             <h2 class="text-lg font-semibold text-slate-700">Liste des dépenses</h2>
           </div>
           
-          <PeriodFilter :period="currentPeriod" @update:period="handlePeriodChange" />
+          <div class="flex items-center gap-3">
+            <PeriodFilter :period="currentPeriod" @update:period="handlePeriodChange" />
+            <ExportButton :period="currentPeriod" />
+          </div>
         </div>
         
         <!-- Tableau -->
@@ -123,19 +128,19 @@
               "<strong class="text-slate-700">{{ expenseToDelete?.description }}</strong>" ?
             </p>
             <div class="flex justify-center gap-3">
-              <button 
+              <AppButton 
+                variant="secondary"
                 @click="showDeleteModal = false"
-                class="px-4 py-2 rounded-xl text-sm font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
               >
                 Annuler
-              </button>
-              <button 
+              </AppButton>
+              <AppButton 
+                variant="danger"
+                :loading="deleting"
                 @click="deleteExpense"
-                :disabled="deleting"
-                class="px-4 py-2 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition disabled:opacity-50"
               >
-                {{ deleting ? 'Suppression...' : 'Supprimer' }}
-              </button>
+                Supprimer
+              </AppButton>
             </div>
           </div>
         </div>
@@ -148,7 +153,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import { useExpenseStore } from '@/stores/useExpenseStore';
+import AppButton from '@/components/common/AppButton.vue';
 import PeriodFilter from '@/components/common/PeriodFilter.vue';
+import ExportButton from '@/components/common/ExportButton.vue';
 import ExpenseTable from '@/components/expenses/ExpenseTable.vue';
 import ExpenseForm from '@/components/expenses/ExpenseForm.vue';
 
