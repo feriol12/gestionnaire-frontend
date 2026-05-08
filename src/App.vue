@@ -22,6 +22,11 @@ const toastComponent = ref(null)
 // Enregistrer l'instance du toast quand le composant est monté
 onMounted(() => {
    console.log('Toast component:', toastComponent.value) // Debug
+
+    // Charge l'utilisateur si un token existe
+  if (authStore.token) {
+    authStore.fetchUser()
+  }
   if (toastComponent.value) {
     registerToast(toastComponent.value)
      console.log('Toast enregistré avec succès ✅')
