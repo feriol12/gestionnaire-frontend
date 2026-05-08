@@ -41,22 +41,22 @@ const router = createRouter({
           component: DashboardView,
         },
         // La route expenses sera ajoutée quand son composant sera prêt
-        // {
-        //   path: 'expenses',
-        //   name: 'expenses',
-        //   component: () => import('@/views/ExpensesView.vue'),
-        // },
+        {
+          path: 'expenses',
+          name: 'expenses',
+          component: () => import('@/views/expenses/ExpensesView.vue'),
+        },
       ]
     },
      {
       // path: '/',
       redirect: '/dashboard'
     },
-    {
-      path: '/expenses',           // ← AJOUT (sans guard, ton ami le fera)
-      name: 'expenses',
-      component: ExpensesView,
-    },
+    // {
+    //   path: '/expenses',           // ← AJOUT (sans guard, ton ami le fera)
+    //   name: 'expenses',
+    //   component: ExpensesView,
+    // },
     {
       path: '/about',
       name: 'about',

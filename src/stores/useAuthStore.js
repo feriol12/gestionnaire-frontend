@@ -90,7 +90,7 @@ export const useAuthStore = defineStore('auth', () => {
   
   const fetchUser = async () => {
     if (!token.value) return;
-    
+        loading.value = true; // ✅ AJOUT: Indicateur de chargement
     try {
       const response = await authApi.getUser();
       user.value = response.data;
@@ -98,8 +98,27 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       console.error('Erreur récupération user:', error);
       logout();
+    }finally {
+      loading.value = false; // ✅ AJOUT: Fin du chargement
     }
   };
+
+  // ============================================
+// INITIALISATION AUTOMATIQUE (OPTIMISÉE)
+// ============================================
+
+const initAuth = async () => {
+  // Vérifie si un token existe
+  if (token.value) {
+    // Si user n'est pas encore chargé ou si vous voulez des données fraîches
+    if (!user.value) {
+      await fetchUser(); // Attend que fetchUser finisse
+    }
+  }
+};
+
+// Exécution automatique silencieuse (ne bloque pas l'UI)
+initAuth();
   
   return {
     user,
