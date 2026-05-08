@@ -4,7 +4,8 @@ import { authApi } from '@/services/apiAuth';
 
 export const useAuthStore = defineStore('auth', () => {
   // State
-  const user = ref(null);
+  // const user = ref(null);
+  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'));  // ✅ Restaure le user
   const token = ref(localStorage.getItem('token') || null);
   const loading = ref(false);
   
@@ -93,6 +94,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const response = await authApi.getUser();
       user.value = response.data;
+       localStorage.setItem('user', JSON.stringify(response.data)); // ✅ Synchronise localStorage
     } catch (error) {
       console.error('Erreur récupération user:', error);
       logout();
