@@ -9,6 +9,8 @@
     :empty-message="emptyMessage"
     empty-icon="💰"
     :has-actions="showActions"
+    :show-pagination="true"
+    
   >
     <!-- Colonne Date personnalisée -->
     <template #column-date="{ row }">
