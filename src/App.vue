@@ -19,6 +19,7 @@ import { onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 const toastComponent = ref(null)
+
 const authStore = useAuthStore()
 
 // Enregistrer l'instance du toast quand le composant est monté
