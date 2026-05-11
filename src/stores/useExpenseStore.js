@@ -2,9 +2,11 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import axios from 'axios';
+import { useToast } from '@/composables/useToast';
 
 export const useExpenseStore = defineStore('expense', () => {
-  // ========== STATE ==========
+  const toast = useToast();
+
   const expenses = ref([]);
   const summary = ref({
     today: 0,
@@ -15,8 +17,6 @@ export const useExpenseStore = defineStore('expense', () => {
   const loading = ref(false);
   const error = ref(null);
 
-  // ========== ACTIONS ==========
-  
   const fetchExpenses = async (period = 'month') => {
     loading.value = true;
     error.value = null;
@@ -25,164 +25,113 @@ export const useExpenseStore = defineStore('expense', () => {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/expenses', {
         params: { period },
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${token}` }
       });
       
-      if (response.data && response.data.data) {
-        expenses.value = response.data.data;
-      } else if (Array.isArray(response.data)) {
-        expenses.value = response.data;
-      } else {
-        expenses.value = [];
-      }
-      
-      return { success: true, data: expenses.value };
+      expenses.value = response.data?.data || response.data || [];
+      return { success: true };
     } catch (err) {
-      console.error('Erreur récupération dépenses:', err);
-      error.value = err.response?.data?.message || 'Erreur lors du chargement des dépenses';
-      return { success: false, message: error.value };
+      error.value = err.response?.data?.message || 'Erreur de chargement';
+      toast.error(error.value, { modal: true });
+      return { success: false };
     } finally {
       loading.value = false;
     }
   };
-  
+
   const fetchSummary = async () => {
     loading.value = true;
-    error.value = null;
-    
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/expenses/summary', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${token}` }
       });
       summary.value = response.data;
-      return { success: true, data: summary.value };
+      return { success: true };
     } catch (err) {
-      console.error('Erreur récupération totaux:', err);
-      error.value = err.response?.data?.message || 'Erreur lors du chargement des totaux';
-      return { success: false, message: error.value };
+      toast.error('Erreur chargement totaux', { modal: true });
+      return { success: false };
     } finally {
       loading.value = false;
     }
   };
-  
+
   const addExpense = async (expenseData) => {
     loading.value = true;
-    error.value = null;
-    
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post('/api/expenses', expenseData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${token}` }
       });
       
       if (response.data) {
         expenses.value.unshift(response.data);
         await fetchSummary();
+        toast.success('Dépense ajoutée avec succès', { modal: true });
       }
-      
       return { success: true, data: response.data };
     } catch (err) {
-      console.error('Erreur ajout dépense:', err);
-      
       if (err.response?.status === 422) {
-        return { 
-          success: false, 
-          errors: err.response.data.errors,
-          message: 'Veuillez corriger les erreurs'
-        };
+        return { success: false, errors: err.response.data.errors };
       }
-      
-      error.value = err.response?.data?.message || 'Erreur lors de l\'ajout';
-      return { success: false, message: error.value };
+      toast.error(err.response?.data?.message || 'Erreur lors de l\'ajout', { modal: true });
+      return { success: false };
     } finally {
       loading.value = false;
     }
   };
-  
+
   const updateExpense = async (id, expenseData) => {
     loading.value = true;
-    error.value = null;
-    
     try {
       const token = localStorage.getItem('token');
       const response = await axios.put(`/api/expenses/${id}`, expenseData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      if (response.data) {
-        const index = expenses.value.findIndex(e => e.id === id);
-        if (index !== -1) {
-          expenses.value[index] = response.data;
-        }
-        await fetchSummary();
-      }
-      
-      return { success: true, data: response.data };
-    } catch (err) {
-      console.error('Erreur modification dépense:', err);
-      
-      if (err.response?.status === 422) {
-        return { 
-          success: false, 
-          errors: err.response.data.errors,
-          message: 'Veuillez corriger les erreurs'
-        };
-      }
-      
-      error.value = err.response?.data?.message || 'Erreur lors de la modification';
-      return { success: false, message: error.value };
-    } finally {
-      loading.value = false;
-    }
-  };
-  
-  const deleteExpense = async (id) => {
-    loading.value = true;
-    error.value = null;
-    
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/expenses/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
+        headers: { Authorization: `Bearer ${token}` }
       });
       
       const index = expenses.value.findIndex(e => e.id === id);
-      if (index !== -1) {
-        expenses.value.splice(index, 1);
-      }
+      if (index !== -1) expenses.value[index] = response.data;
       await fetchSummary();
+      toast.success('Dépense modifiée avec succès', { modal: true });
       
-      return { success: true, message: 'Dépense supprimée avec succès' };
+      return { success: true, data: response.data };
     } catch (err) {
-      console.error('Erreur suppression dépense:', err);
-      error.value = err.response?.data?.message || 'Erreur lors de la suppression';
-      return { success: false, message: error.value };
+      if (err.response?.status === 422) {
+        return { success: false, errors: err.response.data.errors };
+      }
+      toast.error(err.response?.data?.message || 'Erreur lors de la modification', { modal: true });
+      return { success: false };
     } finally {
       loading.value = false;
     }
   };
-  
-  // ========== GETTERS ==========
-  const totalAmount = () => {
-    return expenses.value.reduce((sum, expense) => sum + (parseFloat(expense.amount) || 0), 0);
+
+  const deleteExpense = async (id) => {
+    loading.value = true;
+    try {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/expenses/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      const index = expenses.value.findIndex(e => e.id === id);
+      if (index !== -1) expenses.value.splice(index, 1);
+      await fetchSummary();
+      toast.success('Dépense supprimée avec succès', { modal: true });
+      
+      return { success: true };
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Erreur lors de la suppression', { modal: true });
+      return { success: false };
+    } finally {
+      loading.value = false;
+    }
   };
-  
+
+  const totalAmount = () => {
+    return expenses.value.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  };
+
   return {
     expenses,
     summary,
