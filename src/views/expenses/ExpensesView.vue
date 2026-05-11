@@ -148,6 +148,14 @@
       
     </div>
   </div>
+
+  <!-- <AppNotificationModal
+    :visible="expenseStore.notification.visible"
+    :type="expenseStore.notification.type"
+    :title="expenseStore.notification.title"
+    :message="expenseStore.notification.message"
+    @close="expenseStore.hideNotification"
+  /> -->
 </template>
 
 <script setup>
@@ -158,6 +166,8 @@ import PeriodFilter from '@/components/common/PeriodFilter.vue';
 import ExportButton from '@/components/common/ExportButton.vue';
 import ExpenseTable from '@/components/expenses/ExpenseTable.vue';
 import ExpenseForm from '@/components/expenses/ExpenseForm.vue';
+// import AppNotificationModal from '@/components/common/AppNotificationModal.vue';
+
 
 // ========== STORE ==========
 const expenseStore = useExpenseStore();

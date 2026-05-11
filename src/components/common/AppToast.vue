@@ -1,4 +1,5 @@
 <template>
+  <!-- Toasts en bas à droite (option modal: false par défaut) -->
   <TransitionGroup 
     name="toast" 
     tag="div"
@@ -7,6 +8,7 @@
     <div
       v-for="toast in toasts"
       :key="toast.id"
+      :v-if="!toast.modal"
       :class="[
         'min-w-[320px] max-w-md rounded-lg shadow-lg p-4 pointer-events-auto transform transition-all duration-300',
         'flex items-start gap-3 backdrop-blur-sm',
@@ -15,45 +17,54 @@
       @mouseenter="pauseTimer(toast.id)"
       @mouseleave="resumeTimer(toast.id)"
     >
-      <!-- Icône -->
       <div class="shrink-0">
         <component :is="getIcon(toast.variant)" class="w-5 h-5" />
       </div>
-      
-      <!-- Contenu -->
       <div class="flex-1 min-w-0">
-        <h4 v-if="toast.title" class="font-semibold text-sm mb-1">
-          {{ toast.title }}
-        </h4>
+        <h4 v-if="toast.title" class="font-semibold text-sm mb-1">{{ toast.title }}</h4>
         <p class="text-sm">{{ toast.message }}</p>
       </div>
-      
-      <!-- Bouton fermer -->
-      <button
-        @click="removeToast(toast.id)"
-        class="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600 transition-colors"
-      >
+      <button @click="removeToast(toast.id)" class="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600">
         <X class="w-4 h-4" />
       </button>
     </div>
   </TransitionGroup>
+
+  <!-- Modales centrées (option modal: true) -->
+  <div v-for="toast in modalToasts" :key="toast.id" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all animate-modal">
+      <div class="text-center">
+        <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4" :class="modalIconBgClass(toast.variant)">
+          <component :is="getIcon(toast.variant)" class="w-7 h-7" :class="modalIconColorClass(toast.variant)" />
+        </div>
+        
+        <h3 class="text-lg font-semibold text-slate-900 mb-2">
+          {{ toast.title || modalDefaultTitle(toast.variant) }}
+        </h3>
+        
+        <p class="text-sm text-slate-500 mb-6">
+          {{ toast.message }}
+        </p>
+        
+        <button 
+          @click="removeToast(toast.id)"
+          class="px-6 py-2.5 rounded-xl text-sm font-medium transition w-full"
+          :class="modalButtonClass(toast.variant)"
+        >
+          Fermer
+        </button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue'
-import { 
-  CheckCircle, 
-  AlertCircle, 
-  XCircle, 
-  Info, 
-  X 
-} from 'lucide-vue-next'
+import { ref, computed, onUnmounted } from 'vue'
+import { CheckCircle, AlertCircle, XCircle, Info, X } from 'lucide-vue-next'
 
-// État
 const toasts = ref([])
 const timers = new Map()
 
-// Variantes de couleurs
 const variantClasses = {
   success: 'bg-green-50 border border-green-200 text-green-800',
   error: 'bg-red-50 border border-red-200 text-red-800',
@@ -61,18 +72,38 @@ const variantClasses = {
   info: 'bg-blue-50 border border-blue-200 text-blue-800'
 }
 
-// Icônes par variante
+const modalToasts = computed(() => toasts.value.filter(t => t.modal))
+
 const getIcon = (variant) => {
-  const icons = {
-    success: CheckCircle,
-    error: XCircle,
-    warning: AlertCircle,
-    info: Info
-  }
+  const icons = { success: CheckCircle, error: XCircle, warning: AlertCircle, info: Info }
   return icons[variant] || Info
 }
 
-// Ajouter un toast
+const modalIconBgClass = (variant) => {
+  const classes = { success: 'bg-emerald-100', error: 'bg-red-100', warning: 'bg-amber-100', info: 'bg-blue-100' }
+  return classes[variant] || 'bg-slate-100'
+}
+
+const modalIconColorClass = (variant) => {
+  const classes = { success: 'text-emerald-600', error: 'text-red-600', warning: 'text-amber-600', info: 'text-blue-600' }
+  return classes[variant] || 'text-slate-600'
+}
+
+const modalButtonClass = (variant) => {
+  const classes = { 
+    success: 'bg-emerald-600 hover:bg-emerald-700 text-white', 
+    error: 'bg-red-600 hover:bg-red-700 text-white', 
+    warning: 'bg-amber-600 hover:bg-amber-700 text-white', 
+    info: 'bg-blue-600 hover:bg-blue-700 text-white' 
+  }
+  return classes[variant] || 'bg-slate-600 hover:bg-slate-700 text-white'
+}
+
+const modalDefaultTitle = (variant) => {
+  const titles = { success: 'Succès !', error: 'Erreur', warning: 'Attention', info: 'Information' }
+  return titles[variant] || 'Notification'
+}
+
 const addToast = (toast) => {
   const id = Date.now() + Math.random()
   const newToast = {
@@ -80,30 +111,24 @@ const addToast = (toast) => {
     message: toast.message,
     title: toast.title || '',
     variant: toast.variant || 'info',
-    duration: toast.duration || 3000
+    duration: toast.modal ? 0 : (toast.duration || 3000),
+    modal: toast.modal || false
   }
   
   toasts.value.push(newToast)
   
-  // Auto-suppression
-  if (newToast.duration > 0) {
-    const timer = setTimeout(() => {
-      removeToast(id)
-    }, newToast.duration)
-    
+  if (!newToast.modal && newToast.duration > 0) {
+    const timer = setTimeout(() => removeToast(id), newToast.duration)
     timers.set(id, timer)
   }
   
   return id
 }
 
-// Supprimer un toast
 const removeToast = (id) => {
   const index = toasts.value.findIndex(t => t.id === id)
   if (index !== -1) {
     toasts.value.splice(index, 1)
-    
-    // Nettoyer le timer
     if (timers.has(id)) {
       clearTimeout(timers.get(id))
       timers.delete(id)
@@ -111,7 +136,6 @@ const removeToast = (id) => {
   }
 }
 
-// Pause le timer
 const pauseTimer = (id) => {
   const timer = timers.get(id)
   if (timer) {
@@ -120,18 +144,14 @@ const pauseTimer = (id) => {
   }
 }
 
-// Reprend le timer
 const resumeTimer = (id) => {
   const toast = toasts.value.find(t => t.id === id)
-  if (toast && toast.duration > 0) {
-    const timer = setTimeout(() => {
-      removeToast(id)
-    }, toast.duration)
+  if (toast && !toast.modal && toast.duration > 0) {
+    const timer = setTimeout(() => removeToast(id), toast.duration)
     timers.set(id, timer)
   }
 }
 
-// Méthodes globales
 const toast = {
   success: (message, options = {}) => addToast({ message, variant: 'success', ...options }),
   error: (message, options = {}) => addToast({ message, variant: 'error', ...options }),
@@ -139,10 +159,8 @@ const toast = {
   info: (message, options = {}) => addToast({ message, variant: 'info', ...options })
 }
 
-// Exposer les méthodes
 defineExpose({ toast, addToast, removeToast })
 
-// Nettoyage
 onUnmounted(() => {
   timers.forEach(timer => clearTimeout(timer))
   timers.clear()
@@ -150,22 +168,14 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.toast-enter-active,
-.toast-leave-active {
-  transition: all 0.3s ease;
-}
+.toast-enter-active, .toast-leave-active { transition: all 0.3s ease; }
+.toast-enter-from { opacity: 0; transform: translateX(30px); }
+.toast-leave-to { opacity: 0; transform: translateX(30px); }
+.toast-move { transition: transform 0.3s ease; }
 
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(30px);
+@keyframes modal {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
-
-.toast-leave-to {
-  opacity: 0;
-  transform: translateX(30px);
-}
-
-.toast-move {
-  transition: transform 0.3s ease;
-}
+.animate-modal { animation: modal 0.2s ease-out; }
 </style>
