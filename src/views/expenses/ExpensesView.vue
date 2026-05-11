@@ -27,56 +27,40 @@
         </div>
       </div>
       
-      <!-- ========== CARTES STATISTIQUES ========== -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <!-- Aujourd'hui -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-              <span class="text-xl">💰</span>
-            </div>
-            <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-full">Aujourd'hui</span>
-          </div>
-          <p class="text-2xl font-bold text-slate-800">{{ formatAmount(summary.today) }}</p>
-          <p class="text-xs text-slate-400 mt-1">dépenses du jour</p>
-        </div>
-        
-        <!-- Ce mois -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center">
-              <span class="text-xl">📅</span>
-            </div>
-            <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-full">Ce mois</span>
-          </div>
-          <p class="text-2xl font-bold text-slate-800">{{ formatAmount(summary.this_month) }}</p>
-          <p class="text-xs text-slate-400 mt-1">dépenses mensuelles</p>
-        </div>
-        
-        <!-- Mois dernier -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center">
-              <span class="text-xl">📆</span>
-            </div>
-            <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-full">Mois dernier</span>
-          </div>
-          <p class="text-2xl font-bold text-slate-800">{{ formatAmount(summary.last_month) }}</p>
-          <p class="text-xs text-slate-400 mt-1">mois précédent</p>
-        </div>
-        
-        <!-- Cette année -->
-        <div class="bg-white rounded-2xl p-5 shadow-sm hover:shadow-md transition-shadow duration-200 border border-slate-100">
-          <div class="flex items-center justify-between mb-3">
-            <div class="w-10 h-10 rounded-xl bg-purple-100 flex items-center justify-center">
-              <span class="text-xl">📊</span>
-            </div>
-            <span class="text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-full">Annuel</span>
-          </div>
-          <p class="text-2xl font-bold text-slate-800">{{ formatAmount(summary.this_year) }}</p>
-          <p class="text-xs text-slate-400 mt-1">total de l'année</p>
-        </div>
-      </div>
+     <!-- Cartes statistiques -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+    <StatsCard
+      label="Aujourd'hui"
+      :value="summary.today"
+      icon="💰"
+      subtitle="dépenses du jour"
+      icon-bg-class="bg-blue-100"
+    />
+    
+    <StatsCard
+      label="Ce mois"
+      :value="summary.this_month"
+      icon="📅"
+      subtitle="dépenses mensuelles"
+      icon-bg-class="bg-emerald-100"
+    />
+    
+    <StatsCard
+      label="Mois dernier"
+      :value="summary.last_month"
+      icon="📆"
+      subtitle="mois précédent"
+      icon-bg-class="bg-amber-100"
+    />
+    
+    <StatsCard
+      label="Cette année"
+      :value="summary.this_year"
+      icon="📊"
+      subtitle="total de l'année"
+      icon-bg-class="bg-purple-100"
+    />
+  </div>
       
       <!-- ========== SECTION FILTRES + TABLEAU ========== -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -166,7 +150,7 @@ import PeriodFilter from '@/components/common/PeriodFilter.vue';
 import ExportButton from '@/components/common/ExportButton.vue';
 import ExpenseTable from '@/components/expenses/ExpenseTable.vue';
 import ExpenseForm from '@/components/expenses/ExpenseForm.vue';
-// import AppNotificationModal from '@/components/common/AppNotificationModal.vue';
+import StatsCard from '@/components/common/StatsCard.vue';
 
 
 // ========== STORE ==========
