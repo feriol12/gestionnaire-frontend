@@ -7,7 +7,7 @@ import ExpensesView from '@/views/expenses/ExpensesView.vue'  // ← AJOUT
 import { useAuthStore } from '@/stores/useAuthStore'; 
 import MainLayout from '@/components/layout/MainLayout.vue';
 import DashboardView from '@/views/DashboardView.vue'
-
+import Test from '@/views/Test.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -40,11 +40,21 @@ const router = createRouter({
           name: 'dashboard',
           component: DashboardView,
         },
+         {
+          path: 'test',
+          name: 'test',
+          component: Test,
+        },
         // La route expenses sera ajoutée quand son composant sera prêt
         {
           path: 'expenses',
           name: 'expenses',
           component: () => import('@/views/expenses/ExpensesView.vue'),
+        },
+         {
+          path: 'budgets',
+          name: 'budgets',
+          component: () => import('@/views/budgets/BudgetsView.vue'),
         },
       ]
     },
