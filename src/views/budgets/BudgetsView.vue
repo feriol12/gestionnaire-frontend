@@ -10,7 +10,7 @@ import BudgetTable from '@/components/budgets/BudgetTable.vue'
 import BudgetForm from '@/components/budgets/BudgetForm.vue'
 // import ExportButton from '@/components/common/ExportButton.vue';
 
-
+const annualTotalAmount = computed(() => budgetStore.annualTotalAmount) // Pour la carte total
 // STORE
 const budgetStore = useBudgetStore()
 
@@ -38,7 +38,8 @@ const refreshData = async () => {
 
   await Promise.all([
     budgetStore.fetchBudgets(currentPeriod.value),
-    budgetStore.fetchSummary()
+    budgetStore.fetchSummary(),
+    budgetStore.fetchAllBudgetsForYear() 
   ])
 }
 
@@ -57,7 +58,7 @@ const editBudget = (budget) => {
 }
 
 const closeModal = () => {
-
+ console.log('closeModal called')
   openModal.value = false
 
   selectedBudget.value = null
@@ -195,9 +196,9 @@ onMounted(() => {
 
         <StatsCard
           label="Total"
-          :value="totalAmount"
+          :value="annualTotalAmount"
           icon="🏦"
-          subtitle="budgets cumulés"
+          subtitle="budgets annuels"
           icon-bg-class="bg-amber-100"
         />
 
