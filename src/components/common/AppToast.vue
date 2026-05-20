@@ -1,61 +1,63 @@
 <template>
-  <!-- Toasts en bas à droite (option modal: false par défaut) -->
+  <!-- Toasts en bas à droite (option modal: false) -->
   <TransitionGroup 
     name="toast" 
     tag="div"
     class="fixed bottom-4 right-4 z-50 flex flex-col gap-3"
   >
-    <div
-      v-for="toast in toasts"
-      :key="toast.id"
-      :v-if="!toast.modal"
-      :class="[
-        'min-w-[320px] max-w-md rounded-lg shadow-lg p-4 pointer-events-auto transform transition-all duration-300',
-        'flex items-start gap-3 backdrop-blur-sm',
-        variantClasses[toast.variant]
-      ]"
-      @mouseenter="pauseTimer(toast.id)"
-      @mouseleave="resumeTimer(toast.id)"
-    >
-      <div class="shrink-0">
-        <component :is="getIcon(toast.variant)" class="w-5 h-5" />
+    <template v-for="toast in toasts" :key="toast.id">
+      <div
+        v-if="!toast.modal"
+        :class="[
+          'min-w-[320px] max-w-md rounded-lg shadow-lg p-4 pointer-events-auto transform transition-all duration-300',
+          'flex items-start gap-3 backdrop-blur-sm',
+          variantClasses[toast.variant]
+        ]"
+        @mouseenter="pauseTimer(toast.id)"
+        @mouseleave="resumeTimer(toast.id)"
+      >
+        <div class="shrink-0">
+          <component :is="getIcon(toast.variant)" class="w-5 h-5" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <h4 v-if="toast.title" class="font-semibold text-sm mb-1">{{ toast.title }}</h4>
+          <p class="text-sm">{{ toast.message }}</p>
+        </div>
+        <button @click="removeToast(toast.id)" class="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600">
+          <X class="w-4 h-4" />
+        </button>
       </div>
-      <div class="flex-1 min-w-0">
-        <h4 v-if="toast.title" class="font-semibold text-sm mb-1">{{ toast.title }}</h4>
-        <p class="text-sm">{{ toast.message }}</p>
-      </div>
-      <button @click="removeToast(toast.id)" class="flex-shrink-0 ml-2 text-gray-400 hover:text-gray-600">
-        <X class="w-4 h-4" />
-      </button>
-    </div>
+    </template>
   </TransitionGroup>
 
   <!-- Modales centrées (option modal: true) -->
-  <div v-for="toast in modalToasts" :key="toast.id" class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all animate-modal">
-      <div class="text-center">
-        <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4" :class="modalIconBgClass(toast.variant)">
-          <component :is="getIcon(toast.variant)" class="w-7 h-7" :class="modalIconColorClass(toast.variant)" />
+  <template v-for="toast in modalToasts" :key="toast.id">
+    <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+      <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all animate-modal">
+        <div class="text-center">
+          <div class="w-14 h-14 mx-auto rounded-full flex items-center justify-center mb-4" :class="modalIconBgClass(toast.variant)">
+            <component :is="getIcon(toast.variant)" class="w-7 h-7" :class="modalIconColorClass(toast.variant)" />
+          </div>
+          
+          <h3 class="text-lg font-semibold text-slate-900 mb-2">
+            {{ toast.title || modalDefaultTitle(toast.variant) }}
+          </h3>
+          
+          <p class="text-sm text-slate-500 mb-6">
+            {{ toast.message }}
+          </p>
+          
+          <button 
+            @click="removeToast(toast.id)"
+            class="px-6 py-2.5 rounded-xl text-sm font-medium transition w-full"
+            :class="modalButtonClass(toast.variant)"
+          >
+            Fermer
+          </button>
         </div>
-        
-        <h3 class="text-lg font-semibold text-slate-900 mb-2">
-          {{ toast.title || modalDefaultTitle(toast.variant) }}
-        </h3>
-        
-        <p class="text-sm text-slate-500 mb-6">
-          {{ toast.message }}
-        </p>
-        
-        <button 
-          @click="removeToast(toast.id)"
-          class="px-6 py-2.5 rounded-xl text-sm font-medium transition w-full"
-          :class="modalButtonClass(toast.variant)"
-        >
-          Fermer
-        </button>
       </div>
     </div>
-  </div>
+  </template>
 </template>
 
 <script setup>

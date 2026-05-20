@@ -6,7 +6,7 @@
     :disabled="loading"
     @click="handleExport"
   >
-    📄 Exporter PDF
+    📄 Exporter 
   </AppButton>
 </template>
 
