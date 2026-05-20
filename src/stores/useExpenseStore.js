@@ -1,6 +1,6 @@
 // src/stores/useExpenseStore.js
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import axios from 'axios';
 import { useToast } from '@/composables/useToast';
 
@@ -27,7 +27,7 @@ export const useExpenseStore = defineStore('expense', () => {
         params: { period },
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+       console.log('API RESPONSE EXPENSES:', response.data)
       expenses.value = response.data?.data || response.data || [];
       return { success: true };
     } catch (err) {
@@ -128,10 +128,15 @@ export const useExpenseStore = defineStore('expense', () => {
     }
   };
 
-  const totalAmount = () => {
-    return expenses.value.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-  };
+  // const totalAmount = () => {
+  //   return expenses.value.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
+  // };
 
+  const totalAmount = computed(() => {
+  return expenses.value.reduce((sum, e) => {
+    return sum + (Number(e.amount) || 0)
+  }, 0)
+})
   return {
     expenses,
     summary,
