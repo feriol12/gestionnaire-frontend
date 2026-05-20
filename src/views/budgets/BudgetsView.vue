@@ -8,7 +8,7 @@ import StatsCard from '@/components/common/StatsCard.vue'
 
 import BudgetTable from '@/components/budgets/BudgetTable.vue'
 import BudgetForm from '@/components/budgets/BudgetForm.vue'
-// import ExportButton from '@/components/common/ExportButton.vue';
+import ExportBudgetButton from '@/components/common/ExportBudgetButton.vue';
 
 const annualTotalAmount = computed(() => budgetStore.annualTotalAmount) // Pour la carte total
 // STORE
@@ -235,7 +235,7 @@ onMounted(() => {
               :options="budgetFilterOptions"
        @update:period="handlePeriodChange"
             />
-
+            <ExportBudgetButton :period="currentPeriod" />
           </div>
 
         </div>
