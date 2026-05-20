@@ -1,6 +1,7 @@
 <!-- src/components/expenses/ExpenseTable.vue -->
 <template>
   <AppTable
+    :id="id"
     :data="expenses"
     :columns="columns"
     :loading="loading"
@@ -118,7 +119,11 @@ const props = defineProps({
   showFooter: {
     type: Boolean,
     default: true
-  }
+  },
+
+    id: { type: String, default: 'expenses-table' },
+  title: { type: String, default: 'Mes dépenses' }
+
 });
 
 // ========== EMITS ==========

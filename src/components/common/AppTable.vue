@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-card">
+  <div :id="id" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-card">
     
     <!-- HEADER -->
     <div v-if="$slots.header || title" class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -118,6 +118,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 
 // ========== PROPS ==========
 const props = defineProps({
+   id: { type: String, default: '' }, 
   data: {
     type: Array,
     required: true,
