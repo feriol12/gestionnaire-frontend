@@ -334,9 +334,16 @@ const budgetStore = useBudgetStore()
 const depenseStore = useExpenseStore()
 
 const loadingCategories = ref(false)
+const loadingRecent = ref(false)
+
 
 // STATE
 const currentPeriod = ref('month')
+const evolutionData = ref([])
+const categories = ref([])
+const recentTransactions = ref([])
+
+
 
 const periodOptions = [
   { value: 'month', label: 'Ce mois', icon: '📊' },
@@ -372,7 +379,6 @@ const stats = computed(() => {
 })
 
 // Données catégories (à remplacer par tes vraies données)
-const categories = ref([])
 const fetchCategories = async () => {
   loadingCategories.value = true
   try {
@@ -416,29 +422,77 @@ const totalDepenses = computed(() => {
 })
 
 // Évolution mensuelle (exemple)
-const evolutionData = ref([
-  { label: 'Jan', montant: 250000 },
-  { label: 'Fév', montant: 280000 },
-  { label: 'Mar', montant: 310000 },
-  { label: 'Avr', montant: 295000 },
-  { label: 'Mai', montant: 320000 },
-  { label: 'Juin', montant: 305000 }
-])
+
+const fetchEvolution = async () => {
+  try {
+    const token = localStorage.getItem('token')
+
+    const response = await axios.get('/api/dashboard/evolution', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    evolutionData.value = response.data.data.map(item => ({
+      label: item.label,
+      montant: Number(item.montant)
+    }))
+
+  } catch (error) {
+    console.error('Erreur evolution:', error)
+  }
+}
 
 const maxEvolution = computed(() => {
-  return Math.max(...evolutionData.value.map(d => d.montant))
+  if (!evolutionData.value.length) return 0
+
+  return Math.max(
+    ...evolutionData.value.map(d => Number(d.montant))
+  )
 })
 
-// Dernières transactions
-const recentTransactions = ref([
-  { id: 1, icon: '🍕', description: 'Pizza et boissons', date: '15/05/2024', categorie: 'Alimentation', montant: 15000, status: 'Payé' },
-  { id: 2, icon: '🚗', description: 'Carburant', date: '14/05/2024', categorie: 'Transport', montant: 5000, status: 'Payé' },
-  { id: 3, icon: '🎬', description: 'Cinéma', date: '13/05/2024', categorie: 'Loisirs', montant: 8000, status: 'Payé' },
-  { id: 4, icon: '🏠', description: 'Loyer', date: '12/05/2024', categorie: 'Logement', montant: 100000, status: 'Payé' }
-])
+const fetchRecentTransactions = async () => {
+  loadingRecent.value = true
+
+  try {
+    const token = localStorage.getItem('token')
+
+    const response = await axios.get('/api/dashboard/recent-transactions', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    recentTransactions.value = response.data.data.map(t => ({
+      id: t.id,
+      description: t.description,
+      montant: Number(t.amount),
+      date: t.date,
+      categorie: t.category,
+      icon: getIcon(t.category)
+    }))
+
+  } catch (error) {
+    console.error('Erreur recent transactions:', error)
+  } finally {
+    loadingRecent.value = false
+  }
+}
+
+const getIcon = (category) => {
+  const icons = {
+    Nourriture: '🍕',
+    Transport: '🚗',
+    Loisirs: '🎬',
+    Factures: '💡',
+    Imprévu: '🏠',
+  }
+
+  return icons[category] || '💰'
+}
 
 const totalDepensesRecent = computed(() => {
-  return recentTransactions.value.reduce((sum, t) => sum + t.montant, 0)
+  return recentTransactions.value.reduce((sum, t) => sum + (t.montant || 0), 0)
 })
 
 // Alertes
@@ -474,5 +528,7 @@ const refreshData = async () => {
 onMounted(() => {
   refreshData()
   fetchCategories()
+  fetchEvolution()
+  fetchRecentTransactions()
 })
 </script>
