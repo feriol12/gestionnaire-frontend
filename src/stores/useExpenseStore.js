@@ -1,33 +1,28 @@
 // src/stores/useExpenseStore.js
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
-import axios from 'axios';
+import { expenseApi } from '@/services/apiExpense';
 import { useToast } from '@/composables/useToast';
 
 export const useExpenseStore = defineStore('expense', () => {
   const toast = useToast();
-
+  
   const expenses = ref([]);
-  const summary = ref({
-    today: 0,
-    this_month: 0,
-    last_month: 0,
-    this_year: 0,
-  });
+  const summary = ref({ today: 0, this_month: 0, last_month: 0, this_year: 0 });
   const loading = ref(false);
   const error = ref(null);
+
+  // Getter
+  // const totalAmount = computed(() => {
+  //   return expenses.value.reduce((sum, e) => sum + (Number(e.amount) || 0), 0);
+  // });
 
   const fetchExpenses = async (period = 'month') => {
     loading.value = true;
     error.value = null;
     
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/expenses', {
-        params: { period },
-        headers: { Authorization: `Bearer ${token}` }
-      });
-       console.log('API RESPONSE EXPENSES:', response.data)
+      const response = await expenseApi.getExpenses(period);
       expenses.value = response.data?.data || response.data || [];
       return { success: true };
     } catch (err) {
@@ -42,10 +37,7 @@ export const useExpenseStore = defineStore('expense', () => {
   const fetchSummary = async () => {
     loading.value = true;
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/expenses/summary', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await expenseApi.getSummary();
       summary.value = response.data;
       return { success: true };
     } catch (err) {
@@ -59,10 +51,7 @@ export const useExpenseStore = defineStore('expense', () => {
   const addExpense = async (expenseData) => {
     loading.value = true;
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('/api/expenses', expenseData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await expenseApi.addExpense(expenseData);
       
       if (response.data) {
         expenses.value.unshift(response.data);
@@ -84,10 +73,7 @@ export const useExpenseStore = defineStore('expense', () => {
   const updateExpense = async (id, expenseData) => {
     loading.value = true;
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.put(`/api/expenses/${id}`, expenseData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await expenseApi.updateExpense(id, expenseData);
       
       const index = expenses.value.findIndex(e => e.id === id);
       if (index !== -1) expenses.value[index] = response.data;
@@ -109,10 +95,7 @@ export const useExpenseStore = defineStore('expense', () => {
   const deleteExpense = async (id) => {
     loading.value = true;
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/expenses/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await expenseApi.deleteExpense(id);
       
       const index = expenses.value.findIndex(e => e.id === id);
       if (index !== -1) expenses.value.splice(index, 1);
@@ -128,15 +111,12 @@ export const useExpenseStore = defineStore('expense', () => {
     }
   };
 
-  // const totalAmount = () => {
-  //   return expenses.value.reduce((sum, e) => sum + (parseFloat(e.amount) || 0), 0);
-  // };
-
-  const totalAmount = computed(() => {
+    const totalAmount = computed(() => {
   return expenses.value.reduce((sum, e) => {
     return sum + (Number(e.amount) || 0)
   }, 0)
-})
+  });
+
   return {
     expenses,
     summary,
