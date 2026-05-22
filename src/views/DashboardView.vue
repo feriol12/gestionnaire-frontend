@@ -322,14 +322,18 @@
 import { ref, computed, onMounted, watchEffect } from 'vue'
 import { useBudgetStore } from '@/stores/useBudgetStore'
 import { useExpenseStore } from '@/stores/useExpenseStore'
+import axios from 'axios'
 
 import AppCard from '@/components/common/AppCard.vue'
 import StatsCard from '@/components/common/StatsCard.vue'
 import PeriodFilter from '@/components/common/PeriodFilter.vue'
 
+
 // STORES
 const budgetStore = useBudgetStore()
 const depenseStore = useExpenseStore()
+
+const loadingCategories = ref(false)
 
 // STATE
 const currentPeriod = ref('month')
@@ -368,13 +372,44 @@ const stats = computed(() => {
 })
 
 // Données catégories (à remplacer par tes vraies données)
-const categories = ref([
-  { nom: 'Alimentation', montant: 144000, pourcentage: 45, total: 144000, color: 'bg-blue-500' },
-  { nom: 'Logement', montant: 96000, pourcentage: 30, total: 96000, color: 'bg-emerald-500' },
-  { nom: 'Transport', montant: 38400, pourcentage: 12, total: 38400, color: 'bg-amber-500' },
-  { nom: 'Loisirs', montant: 25600, pourcentage: 8, total: 25600, color: 'bg-purple-500' },
-  { nom: 'Santé', montant: 16000, pourcentage: 5, total: 16000, color: 'bg-red-500' }
-])
+const categories = ref([])
+const fetchCategories = async () => {
+  loadingCategories.value = true
+  try {
+    const token = localStorage.getItem('token')
+
+    const response = await axios.get('/api/dashboard/categories', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    categories.value = response.data.data.map(cat => ({
+      nom: cat.nom,
+      montant: Number(cat.montant),
+      pourcentage: Number(cat.pourcentage),
+      total: Number(cat.montant), // ou enlever si inutile
+      color: getColor(cat.nom)
+    }))
+
+  } catch (error) {
+    console.error('Erreur catégories:', error)
+  }finally {
+    loadingCategories.value = false
+  }
+}
+
+const getColor = (name) => {
+  const colors = {
+    'Nourriture': 'bg-blue-500',
+    'Factures': 'bg-emerald-500',
+    'Transport': 'bg-amber-500',
+    'Loisirs': 'bg-purple-500',
+    'Imprévu': 'bg-red-500',
+  }
+
+  return colors[name] || 'bg-slate-500'
+}
 
 const totalDepenses = computed(() => {
   return categories.value.reduce((sum, cat) => sum + cat.montant, 0)
@@ -438,5 +473,6 @@ const refreshData = async () => {
 // LIFECYCLE
 onMounted(() => {
   refreshData()
+  fetchCategories()
 })
 </script>
