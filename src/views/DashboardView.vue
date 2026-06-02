@@ -261,7 +261,7 @@
       </div>
 
       <!-- BUDGETS RAPIDES -->
-      <div>
+      <!-- <div>
         <AppCard>
           <template #header>
             <div class="flex items-center gap-3">
@@ -312,7 +312,7 @@
             </div>
           </div>
         </AppCard>
-      </div>
+      </div> -->
       
     </div>
   </div>
@@ -389,6 +389,9 @@ const fetchCategories = async () => {
         Authorization: `Bearer ${token}`
       }
     })
+
+    console.log('Categories API:', response.data)
+
 
     categories.value = response.data.data.map(cat => ({
       nom: cat.nom,
@@ -496,12 +499,53 @@ const totalDepensesRecent = computed(() => {
 })
 
 // Alertes
-const alertes = ref([
-  { icon: '⚠️', title: 'Budget alimentation dépassé', message: 'Vous avez dépassé de 15 000 F', bgColor: 'bg-red-50', action: 'Voir détails' },
-  { icon: '📅', title: 'Fin du mois approche', message: 'Plus que 5 jours, restant 180 000 F', bgColor: 'bg-amber-50', action: null },
-  { icon: '💡', title: 'Économies', message: 'Vous avez économisé 25% ce mois-ci', bgColor: 'bg-emerald-50', action: 'Félicitations' }
-])
+const alertes = computed(() => {
+  const list = []
 
+  const budget = stats.value.budget_total
+  const depenses = stats.value.depenses_total
+  const restant = stats.value.restant
+  const taux = stats.value.taux_epargne
+
+  if (depenses > budget && budget > 0) {
+    list.push({
+      icon: '🚨',
+      title: 'Budget dépassé',
+      message: `Vous avez dépassé votre budget de ${(depenses - budget).toLocaleString()} F`,
+      bgColor: 'bg-red-50',
+      action: 'Voir détails'
+    })
+  }
+
+    const today = new Date()
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
+
+  const daysLeft = Math.ceil((lastDay - today) / (1000 * 60 * 60 * 24))
+
+  if (daysLeft <= 5 && daysLeft > 0) {
+    list.push({
+      icon: '📅',
+      title: 'Fin du mois approche',
+      message: `Plus que ${daysLeft} jour(s) avant la fin du mois`,
+      bgColor: 'bg-amber-50',
+      action: null
+    })
+  }
+
+    if (daysLeft === 0 || daysLeft === 1) {
+    if (taux >= 20) {
+      list.push({
+        icon: '🎉',
+        title: 'Excellente gestion',
+        message: `Vous avez économisé ${taux}% ce mois-ci`,
+        bgColor: 'bg-emerald-50',
+        action: 'Félicitations'
+      })
+    }
+  }
+
+    return list
+})
 // Budgets actifs
 const budgetsActifs = ref([
   { id: 1, categorie: 'Alimentation', period: 'Mai 2024', montant: 200000, depense: 144000, restant: 56000, pourcentage: 72 },
