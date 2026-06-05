@@ -1,6 +1,5 @@
 <!-- src/components/common/Navbar.vue -->
 <template>
-  <!-- Enlève le max-w-7xl et mx-auto ici -->
   <nav class="bg-white shadow-lg fixed top-0 w-full z-50">
     <div class="px-4 sm:px-6 lg:px-8">
       <div class="flex justify-between items-center h-16">
@@ -12,19 +11,47 @@
             <span class="font-bold text-gray-800 text-xl hidden sm:block">Dépenses</span>
           </router-link>
           
-          <!-- Navigation desktop -->
+          <!-- Navigation desktop - J'AI AJOUTÉ LES 2 BOUTONS MANQUANTS -->
           <div class="hidden md:flex ml-8 space-x-4">
+            <!-- Dashboard -->
             <router-link 
               to="/dashboard" 
-              class="px-3 py-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium"
-              :class="{ 'text-green-600 border-b-2 border-green-600': $route.path === '/dashboard' }"
+              class="px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200 font-medium"
+              :class="{ 
+                'bg-green-50 text-green-600 cursor-default pointer-events-none': $route.path === '/dashboard',
+                'active-nav': $route.path === '/dashboard'
+              }"
             >
               📊 Tableau de bord
+            </router-link>
+            
+            <!-- Dépenses -->
+            <router-link 
+              to="/expenses" 
+              class="px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200 font-medium"
+              :class="{ 
+                'bg-green-50 text-green-600 cursor-default pointer-events-none': $route.path === '/expenses',
+                'active-nav': $route.path === '/expenses'
+              }"
+            >
+              💸 Dépenses
+            </router-link>
+            
+            <!-- Budgets -->
+            <router-link 
+              to="/budgets" 
+              class="px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-all duration-200 font-medium"
+              :class="{ 
+                'bg-green-50 text-green-600 cursor-default pointer-events-none': $route.path === '/budgets',
+                'active-nav': $route.path === '/budgets'
+              }"
+            >
+              🎯 Budgets
             </router-link>
           </div>
         </div>
         
-        <!-- Section DROITE - tout à droite -->
+        <!-- Section DROITE - inchangée -->
         <div class="flex items-center space-x-4">
           <div v-if="authStore.isAuthenticated" class="relative">
             <button @click="toggleDropdown" class="flex items-center space-x-2 focus:outline-none">
@@ -68,16 +95,46 @@
       </div>
     </div>
     
-    <!-- Menu mobile (inchangé) -->
+    <!-- Menu mobile - J'AI AJOUTÉ LES 2 BOUTONS MANQUANTS -->
     <div v-if="isMobileMenuOpen" class="md:hidden bg-white border-t shadow-lg">
       <div class="px-4 pt-2 pb-3 space-y-1">
+        <!-- Dashboard -->
         <router-link 
           to="/dashboard" 
-          class="block px-3 py-2 text-base font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md transition"
-          :class="{ 'bg-green-50 text-green-600': $route.path === '/dashboard' }"
+          class="block px-3 py-2 rounded-lg text-base font-medium transition"
+          :class="{ 
+            'bg-green-50 text-green-600': $route.path === '/dashboard',
+            'text-gray-600 hover:text-gray-900 hover:bg-gray-50': $route.path !== '/dashboard'
+          }"
           @click="closeMobileMenu"
         >
           📊 Tableau de bord
+        </router-link>
+        
+        <!-- Dépenses -->
+        <router-link 
+          to="/expenses" 
+          class="block px-3 py-2 rounded-lg text-base font-medium transition"
+          :class="{ 
+            'bg-green-50 text-green-600': $route.path === '/expenses',
+            'text-gray-600 hover:text-gray-900 hover:bg-gray-50': $route.path !== '/expenses'
+          }"
+          @click="closeMobileMenu"
+        >
+          💸 Dépenses
+        </router-link>
+        
+        <!-- Budgets -->
+        <router-link 
+          to="/budgets" 
+          class="block px-3 py-2 rounded-lg text-base font-medium transition"
+          :class="{ 
+            'bg-green-50 text-green-600': $route.path === '/budgets',
+            'text-gray-600 hover:text-gray-900 hover:bg-gray-50': $route.path !== '/budgets'
+          }"
+          @click="closeMobileMenu"
+        >
+          🎯 Budgets
         </router-link>
         
         <div v-if="!authStore.isAuthenticated" class="pt-4 border-t">
@@ -109,18 +166,11 @@ import { useAuthStore } from '@/stores/useAuthStore';
 const router = useRouter();
 const authStore = useAuthStore();
 
-// Pour déboguer, ajoute ceci
-console.log('État de authStore:', {
-  isAuthenticated: authStore.isAuthenticated,
-  user: authStore.user,
-  token: authStore.token
-});
-
 const isDropdownOpen = ref(false);
 const isMobileMenuOpen = ref(false);
 
 const userInitial = computed(() => {
-  return authStore.user.name ? authStore.user.name.charAt(0).toUpperCase() : '?';
+  return authStore.user?.name ? authStore.user.name.charAt(0).toUpperCase() : '?';
 });
 
 const toggleDropdown = () => {
@@ -169,3 +219,10 @@ onUnmounted(() => {
   document.body.style.overflow = '';
 });
 </script>
+
+<style scoped>
+.active-nav {
+  background-color: rgb(240 253 244);
+  color: rgb(22 163 74);
+}
+</style>
