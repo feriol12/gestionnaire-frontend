@@ -81,7 +81,7 @@ const router = createRouter({
 
 
 // // Navigation Guard
-router.beforeEach(async (to, from, next) => {
+router.beforeEach(async (to, from) => {
     const authStore = useAuthStore();
     
     // Vérifier si l'utilisateur est authentifié
@@ -89,15 +89,13 @@ router.beforeEach(async (to, from, next) => {
     
     // Si la route nécessite l'auth
     if (to.meta.requiresAuth && !isAuthenticated) {
-        next('/login');
+        return('/login');
     }
     // Si la route est pour invités et que l'utilisateur est connecté
     else if (to.meta.guest && isAuthenticated) {
-        next('/dashboard');
+        return('/dashboard');
     }
-    else {
-        next();
-    }
+   
 });
 
 export default router
