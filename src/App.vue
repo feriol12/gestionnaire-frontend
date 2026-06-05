@@ -17,10 +17,12 @@ import AppToast from '@/components/common/AppToast.vue'
 import { registerToast } from '@/composables/useToast'
 import { onMounted, ref } from 'vue'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useInactivityTimer } from '@/composables/useInactivityTimer'
 
 const toastComponent = ref(null)
 
 const authStore = useAuthStore()
+ useInactivityTimer(3) //3minutes d'inactivité avant déconnexion
 
 // Enregistrer l'instance du toast quand le composant est monté
 onMounted(() => {

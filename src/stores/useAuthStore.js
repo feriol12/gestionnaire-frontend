@@ -1,20 +1,19 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { authApi } from '@/services/apiAuth';
+import router from '@/router';
 
 export const useAuthStore = defineStore('auth', () => {
   // State
-  // const user = ref(null);
-  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'));  // ✅ Restaure le user
+  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'));
   const token = ref(localStorage.getItem('token') || null);
   const loading = ref(false);
+  const isLoggingOut = ref(false); // Flag pour éviter les appels multiples
   
-  // // Getters
-  // const isAuthenticated = () => !!token.value && !!user.value;
-  
-   // Getters - utilise computed au lieu d'une fonction
+  // Getters
   const isAuthenticated = computed(() => !!token.value && !!user.value);
   const userName = computed(() => user.value?.name || '');
+  
   // Actions
   const register = async (userData) => {
     loading.value = true;
@@ -26,7 +25,7 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = response.data.token;
         user.value = response.data.user;
         localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user)); // ← Ajoute aussi le user
+        localStorage.setItem('user', JSON.stringify(response.data.user));
       }
       
       return { success: true, data: response.data };
@@ -34,7 +33,6 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('Erreur inscription:', error);
       
       if (error.response?.status === 422) {
-        // Erreurs de validation
         return { 
           success: false, 
           errors: error.response.data.errors,
@@ -61,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
         token.value = response.data.token;
         user.value = response.data.user;
         localStorage.setItem('token', response.data.token);
-         localStorage.setItem('user', JSON.stringify(response.data.user)); // ← Ajoute aussi le user
+        localStorage.setItem('user', JSON.stringify(response.data.user));
       }
       
       return { success: true, data: response.data };
@@ -75,60 +73,89 @@ export const useAuthStore = defineStore('auth', () => {
     }
   };
   
-  const logout = async () => {
+  const logout = async (options = { skipApiCall: false }) => {
+    // Éviter les appels multiples
+    if (isLoggingOut.value) return;
+    isLoggingOut.value = true;
+    
     try {
-      await authApi.logout();
-    } catch (error) {
-      console.error('Erreur déconnexion:', error);
+      if (!options.skipApiCall && token.value) {
+        try {
+          await authApi.logout();
+        } catch (error) {
+          // Ignorer les erreurs de logout (déjà déconnecté)
+          console.log('Logout API error ignored:', error.message);
+        }
+      }
     } finally {
+      // Nettoyer toujours le localStorage et le state
       token.value = null;
       user.value = null;
+      loading.value = false;
       localStorage.removeItem('token');
-      localStorage.removeItem('user'); // ← Ajoute aussi le user
+      localStorage.removeItem('user');
+      isLoggingOut.value = false;
+      
+      // Rediriger seulement si pas déjà sur login
+      if (router.currentRoute.value.path !== '/login') {
+        router.push('/login');
+      }
     }
   };
   
   const fetchUser = async () => {
     if (!token.value) return;
-        loading.value = true; // ✅ AJOUT: Indicateur de chargement
+    loading.value = true;
+    
     try {
       const response = await authApi.getUser();
       user.value = response.data;
-       localStorage.setItem('user', JSON.stringify(response.data)); // ✅ Synchronise localStorage
+      localStorage.setItem('user', JSON.stringify(response.data));
     } catch (error) {
       console.error('Erreur récupération user:', error);
-      logout();
-    }finally {
-      loading.value = false; // ✅ AJOUT: Fin du chargement
+      // Ne pas appeler logout ici pour éviter la boucle
+      // Juste nettoyer localement
+      token.value = null;
+      user.value = null;
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      router.push('/login');
+    } finally {
+      loading.value = false;
     }
   };
-
-  // ============================================
-// INITIALISATION AUTOMATIQUE (OPTIMISÉE)
-// ============================================
-
-const initAuth = async () => {
-  // Vérifie si un token existe
-  if (token.value) {
-    // Si user n'est pas encore chargé ou si vous voulez des données fraîches
-    if (!user.value) {
-      await fetchUser(); // Attend que fetchUser finisse
+  
+  // Méthode pour vérifier si le token est valide
+  const checkSession = () => {
+    const storedToken = localStorage.getItem('token');
+    if (!storedToken && token.value) {
+      // Token manquant, nettoyer le store sans appel API
+      logout({ skipApiCall: true });
     }
-  }
-};
-
-// Exécution automatique silencieuse (ne bloque pas l'UI)
-initAuth();
+  };
+  
+  // INITIALISATION AUTOMATIQUE
+  const initAuth = async () => {
+    if (token.value) {
+      if (!user.value) {
+        await fetchUser();
+      }
+    }
+  };
+  
+  // Exécution automatique silencieuse
+  initAuth();
   
   return {
     user,
     token,
     loading,
     isAuthenticated,
-    userName,         // Ajoute ce getter
+    userName,
     register,
     login,
     logout,
     fetchUser,
+    checkSession,
   };
 });

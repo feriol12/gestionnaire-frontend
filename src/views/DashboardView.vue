@@ -318,56 +318,52 @@
   </div>
 </template>
 
+
+
+
+
+
 <script setup>
 import { ref, computed, onMounted, watchEffect } from 'vue'
 import { useBudgetStore } from '@/stores/useBudgetStore'
 import { useExpenseStore } from '@/stores/useExpenseStore'
-import axios from 'axios'
+import apiClient from '@/services/apiClient' // ← Import apiClient
+import { useAuthStore } from '@/stores/useAuthStore' // ← Pour vérifier l'auth
+import { useRouter } from 'vue-router' // ← Pour redirection
 
 import AppCard from '@/components/common/AppCard.vue'
 import StatsCard from '@/components/common/StatsCard.vue'
 import PeriodFilter from '@/components/common/PeriodFilter.vue'
 
-
 // STORES
 const budgetStore = useBudgetStore()
 const depenseStore = useExpenseStore()
-
-const loadingCategories = ref(false)
-const loadingRecent = ref(false)
-
+const authStore = useAuthStore()
+const router = useRouter()
 
 // STATE
 const currentPeriod = ref('month')
 const evolutionData = ref([])
 const categories = ref([])
 const recentTransactions = ref([])
-
-
+const loadingCategories = ref(false)
+const loadingRecent = ref(false)
+const loadingEvolution = ref(false)
 
 const periodOptions = [
   { value: 'month', label: 'Ce mois', icon: '📊' },
   { value: 'year', label: 'Cette année', icon: '📈' }
 ]
-    watchEffect(() => {
+
+watchEffect(() => {
   console.log('=== DEBUG DASHBOARD ===')
-
-  console.log(
-    'Budget total:',
-    budgetStore.totalAmount,
-    typeof budgetStore.totalAmount
-  )
-
-  console.log(
-    'Dépenses total:',
-    depenseStore.summary?.this_month,
-    typeof depenseStore.summary?.this_month
-  )
+  console.log('Budget total:', budgetStore.totalAmount, typeof budgetStore.totalAmount)
+  console.log('Dépenses total:', depenseStore.summary?.this_month, typeof depenseStore.summary?.this_month)
 })
+
 // COMPUTED - Stats principales
 const stats = computed(() => {
   const budget = Number(budgetStore.totalAmount) || 0
-  // Utiliser summary.this_month (c'est déjà le total du mois)
   const depenses = Number(depenseStore.summary?.this_month) || 0
 
   return {
@@ -378,32 +374,32 @@ const stats = computed(() => {
   }
 })
 
-// Données catégories (à remplacer par tes vraies données)
+// Récupération des catégories (version avec apiClient)
 const fetchCategories = async () => {
+  // Vérifier si token existe
+  if (!authStore.isAuthenticated) {
+    router.push('/login')
+    return
+  }
+  
   loadingCategories.value = true
   try {
-    const token = localStorage.getItem('token')
-
-    const response = await axios.get('/api/dashboard/categories', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
+    // Utiliser apiClient au lieu de axios direct
+    const response = await apiClient.get('/dashboard/categories')
+    
     console.log('Categories API:', response.data)
-
-
+    
     categories.value = response.data.data.map(cat => ({
       nom: cat.nom,
       montant: Number(cat.montant),
       pourcentage: Number(cat.pourcentage),
-      total: Number(cat.montant), // ou enlever si inutile
+      total: Number(cat.montant),
       color: getColor(cat.nom)
     }))
-
   } catch (error) {
     console.error('Erreur catégories:', error)
-  }finally {
+    // Si erreur 401, la redirection sera gérée par l'interceptor
+  } finally {
     loadingCategories.value = false
   }
 }
@@ -416,7 +412,6 @@ const getColor = (name) => {
     'Loisirs': 'bg-purple-500',
     'Imprévu': 'bg-red-500',
   }
-
   return colors[name] || 'bg-slate-500'
 }
 
@@ -424,48 +419,38 @@ const totalDepenses = computed(() => {
   return categories.value.reduce((sum, cat) => sum + cat.montant, 0)
 })
 
-// Évolution mensuelle (exemple)
-
+// Évolution mensuelle (avec apiClient)
 const fetchEvolution = async () => {
+  if (!authStore.isAuthenticated) return
+  
+  loadingEvolution.value = true
   try {
-    const token = localStorage.getItem('token')
-
-    const response = await axios.get('/api/dashboard/evolution', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
+    const response = await apiClient.get('/dashboard/evolution')
+    
     evolutionData.value = response.data.data.map(item => ({
       label: item.label,
       montant: Number(item.montant)
     }))
-
   } catch (error) {
     console.error('Erreur evolution:', error)
+  } finally {
+    loadingEvolution.value = false
   }
 }
 
 const maxEvolution = computed(() => {
   if (!evolutionData.value.length) return 0
-
-  return Math.max(
-    ...evolutionData.value.map(d => Number(d.montant))
-  )
+  return Math.max(...evolutionData.value.map(d => Number(d.montant)))
 })
 
+// Dernières transactions (avec apiClient)
 const fetchRecentTransactions = async () => {
+  if (!authStore.isAuthenticated) return
+  
   loadingRecent.value = true
-
   try {
-    const token = localStorage.getItem('token')
-
-    const response = await axios.get('/api/dashboard/recent-transactions', {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-
+    const response = await apiClient.get('/dashboard/recent-transactions')
+    
     recentTransactions.value = response.data.data.map(t => ({
       id: t.id,
       description: t.description,
@@ -474,9 +459,10 @@ const fetchRecentTransactions = async () => {
       categorie: t.category,
       icon: getIcon(t.category)
     }))
-
   } catch (error) {
+     if (!error?.silent) {
     console.error('Erreur recent transactions:', error)
+  }
   } finally {
     loadingRecent.value = false
   }
@@ -490,7 +476,6 @@ const getIcon = (category) => {
     Factures: '💡',
     Imprévu: '🏠',
   }
-
   return icons[category] || '💰'
 }
 
@@ -501,7 +486,6 @@ const totalDepensesRecent = computed(() => {
 // Alertes
 const alertes = computed(() => {
   const list = []
-
   const budget = stats.value.budget_total
   const depenses = stats.value.depenses_total
   const restant = stats.value.restant
@@ -517,9 +501,8 @@ const alertes = computed(() => {
     })
   }
 
-    const today = new Date()
+  const today = new Date()
   const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
-
   const daysLeft = Math.ceil((lastDay - today) / (1000 * 60 * 60 * 24))
 
   if (daysLeft <= 5 && daysLeft > 0) {
@@ -532,7 +515,7 @@ const alertes = computed(() => {
     })
   }
 
-    if (daysLeft === 0 || daysLeft === 1) {
+  if (daysLeft === 0 || daysLeft === 1) {
     if (taux >= 20) {
       list.push({
         icon: '🎉',
@@ -544,9 +527,10 @@ const alertes = computed(() => {
     }
   }
 
-    return list
+  return list
 })
-// Budgets actifs
+
+// Budgets actifs (données mockées à remplacer par API)
 const budgetsActifs = ref([
   { id: 1, categorie: 'Alimentation', period: 'Mai 2024', montant: 200000, depense: 144000, restant: 56000, pourcentage: 72 },
   { id: 2, categorie: 'Loisirs', period: 'Mai 2024', montant: 50000, depense: 48000, restant: 2000, pourcentage: 96 },
@@ -556,20 +540,28 @@ const budgetsActifs = ref([
 // METHODS
 const handlePeriodChange = (period) => {
   currentPeriod.value = period
-  // Recharger les données selon la période
   refreshData()
 }
 
 const refreshData = async () => {
-  await Promise.all([
+  if (!authStore.isAuthenticated) return
+  
+  await Promise.allSettled([
     budgetStore.fetchBudgets(currentPeriod.value),
     depenseStore.fetchExpenses(currentPeriod.value),
-     depenseStore.fetchSummary()
+    depenseStore.fetchSummary()
   ])
 }
 
 // LIFECYCLE
 onMounted(() => {
+  // Vérifier l'authentification au montage
+  if (!authStore.isAuthenticated) {
+    router.push('/login')
+    return
+  }
+  
+   
   refreshData()
   fetchCategories()
   fetchEvolution()
