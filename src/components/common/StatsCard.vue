@@ -47,14 +47,7 @@ const props = defineProps({
   }
 });
 
-// const formattedValue = computed(() => {
-//   if (props.value === undefined || props.value === null) return '0,00 €';
-//   return new Intl.NumberFormat('fr-FR', { 
-//     minimumFractionDigits: 2, 
-//     maximumFractionDigits: 2 
-//   }).format(props.value) + ' €';
 
-// });
 const formattedValue = computed(() => {
   if (props.value === undefined || props.value === null) return '0';
   
@@ -75,6 +68,6 @@ const formattedValue = computed(() => {
   return new Intl.NumberFormat('fr-FR', { 
     minimumFractionDigits: 2, 
     maximumFractionDigits: 2 
-  }).format(props.value) + ' €';
+  }).format(props.value) + ' FCFA';
 });
 </script>
