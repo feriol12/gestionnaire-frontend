@@ -21,7 +21,7 @@
             :error="errors.email"
           />
           
-          <AppInput
+          <!-- <AppInput
             v-model="form.password"
             label="Mot de passe"
             type="password"
@@ -29,8 +29,29 @@
             required
             :error="errors.password"
             hint="Au moins 8 caractères"
-          />
+          /> -->
           
+          
+          <div class="relative">
+            <AppInput
+              v-model="form.password"
+              label="Mot de passe"
+              :type="showPassword ? 'text' : 'password'"
+              placeholder="••••••••"
+              required
+              :error="errors.password"
+            />
+
+            <!-- bouton œil -->
+            <button
+              type="button"
+              @click="showPassword = !showPassword"
+              class="absolute right-3 top-9 text-slate-500 hover:text-slate-700"
+            >
+              <span v-if="showPassword">🙈</span>
+              <span v-else>👁️</span>
+            </button>
+          </div>
           <AppInput
             v-model="form.password_confirmation"
             label="Confirmer le mot de passe"
@@ -78,6 +99,8 @@ const { success, error } = useToast(); // 👈 Récupère seulement ce dont tu a
 
 // Référence vers le toast (sera injectée depuis le parent)
 const toast = ref(null);
+const showPassword = ref(false)
+
 
 const form = ref({
   name: '',
@@ -129,55 +152,3 @@ const handleSubmit = async () => {
   loading.value = false;
 };
 </script>
-<!-- <script setup>
-
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/useAuthStore';
-import AppInput from '@/components/common/AppInput.vue';
-import AppButton from '@/components/common/AppButton.vue';
-import AppCard from '@/components/common/AppCard.vue';
-import AppToast from '@/components/common/AppToast.vue';
-
-const router = useRouter();
-const authStore = useAuthStore();
-
-const form = ref({
-  name: '',
-  email: '',
-  password: '',
-  password_confirmation: ''
-});
-
-const errors = ref({});
-const errorMessage = ref('');
-const loading = ref(false);
-
-const handleSubmit = async () => {
-  // Reset errors
-  errors.value = {};
-  errorMessage.value = '';
-  
-  // Vérification password confirmation
-  if (form.value.password !== form.value.password_confirmation) {
-    errors.value.password = 'Les mots de passe ne correspondent pas';
-    return;
-  }
-  
-  loading.value = true;
-  
-  const result = await authStore.register(form.value);
-  
-  if (result.success) {
-    router.push('/login');
-  } else {
-    if (result.errors) {
-      errors.value = result.errors;
-    } else {
-      errorMessage.value = result.message;
-    }
-  }
-  
-  loading.value = false;
-};
-</script> -->
