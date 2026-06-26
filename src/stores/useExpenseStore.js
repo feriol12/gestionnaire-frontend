@@ -60,6 +60,11 @@ export const useExpenseStore = defineStore('expense', () => {
       }
       return { success: true, data: response.data };
     } catch (err) {
+         // ✅ Gestion spécifique pour les erreurs 500
+    if (err.response?.status === 500) {
+      toast.error('Le montant est trop élevé. Maximum autorisé : 99 999 999,99 FCFA', { modal: true });
+      return { success: false };
+    }
       if (err.response?.status === 422) {
         return { success: false, errors: err.response.data.errors };
       }
