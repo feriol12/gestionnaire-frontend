@@ -20,9 +20,7 @@
               :options="periodOptions"
               @update:period="handlePeriodChange"
             />
-            <button class="px-4 py-2 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 transition-all">
-              📥 Exporter
-            </button>
+           
           </div>
         </div>
       </div>
@@ -116,9 +114,13 @@
           <template #footer>
             <div class="text-sm text-slate-500 flex justify-between items-center">
               <span>📊 Total: {{ totalDepenses.toLocaleString() }} F</span>
-              <button class="text-blue-500 hover:text-blue-600 text-sm">
-                Voir détails →
-              </button>
+             
+              <RouterLink
+              :to="{ name: 'expenses' }"
+              class="text-blue-500 hover:text-blue-600 text-sm"
+            >
+              Voir détails →
+            </RouterLink>
             </div>
           </template>
         </AppCard>
@@ -160,7 +162,8 @@
           
           <template #footer>
             <div class="text-sm text-slate-500 flex justify-between">
-              <span>📈 +12% vs mois dernier</span>
+              <span>📈 {{ stats.variation_budget > 0 ? '+' : '' }}
+                           {{ stats.variation_budget.toFixed(1) }}% vs mois dernier</span>
               <span>🎯 Objectif: {{ (stats.budget_total * 0.8).toLocaleString() }} F</span>
             </div>
           </template>
@@ -180,9 +183,10 @@
                   Dernières transactions
                 </h3>
               </div>
-              <button class="text-sm text-blue-500 hover:text-blue-600">
-                Voir toutes →
-              </button>
+           
+              <RouterLink :to="{name : 'expenses'}" class="text-sm text-blue-500 hover:text-blue-600">
+                       Voir toutes →
+              </RouterLink>
             </template>
             
             <div class="space-y-3">
@@ -210,7 +214,6 @@
             <template #footer>
               <div class="flex justify-between items-center">
                 <span class="text-sm text-slate-500">💰 Total dépenses: {{ totalDepensesRecent.toLocaleString() }} F</span>
-                <button class="text-blue-500 text-sm">🔍 Voir historique</button>
               </div>
             </template>
           </AppCard>
@@ -365,12 +368,40 @@ watchEffect(() => {
 const stats = computed(() => {
   const budget = Number(budgetStore.totalAmount) || 0
   const depenses = Number(depenseStore.summary?.this_month) || 0
+  const lastMonthBudget = Number(budgetStore.summary?.last_month_total) || 0
+
+    let previous = 0
+
+  // 🔥 MOIS
+  if (currentPeriod.value === 'month') {
+    previous = Number(budgetStore.summary?.last_month_total) || 0
+  }
+
+  // 🔥 ANNÉE
+  if (currentPeriod.value === 'year') {
+    previous = Number(budgetStore.summary?.last_year_total) || 0
+  }
+
+  // const variation = lastMonthBudget === 0
+  //   ? 0
+  //   : ((budget - lastMonthBudget) / lastMonthBudget) * 100
+
+  const variation =
+    previous === 0
+      ? 0
+      : ((budget - previous) / previous) * 100
+
+    console.log('budget:', budget)
+    console.log('previous:', previous)
+
 
   return {
     budget_total: budget,
     depenses_total: depenses,
     restant: budget - depenses,
-    taux_epargne: budget > 0 ? Math.round(((budget - depenses) / budget) * 100) : 0
+    taux_epargne: budget > 0 ? Math.round(((budget - depenses) / budget) * 100) : 0,
+    variation_budget: variation
+
   }
 })
 
@@ -530,12 +561,6 @@ const alertes = computed(() => {
   return list
 })
 
-// Budgets actifs (données mockées à remplacer par API)
-const budgetsActifs = ref([
-  { id: 1, categorie: 'Alimentation', period: 'Mai 2024', montant: 200000, depense: 144000, restant: 56000, pourcentage: 72 },
-  { id: 2, categorie: 'Loisirs', period: 'Mai 2024', montant: 50000, depense: 48000, restant: 2000, pourcentage: 96 },
-  { id: 3, categorie: 'Transport', period: 'Mai 2024', montant: 60000, depense: 38400, restant: 21600, pourcentage: 64 }
-])
 
 // METHODS
 const handlePeriodChange = (period) => {
@@ -561,7 +586,7 @@ onMounted(() => {
     return
   }
   
-   
+   budgetStore.fetchSummary()
   refreshData()
   fetchCategories()
   fetchEvolution()

@@ -22,7 +22,7 @@ import { useInactivityTimer } from '@/composables/useInactivityTimer'
 const toastComponent = ref(null)
 
 const authStore = useAuthStore()
- useInactivityTimer(3) //3minutes d'inactivité avant déconnexion
+ useInactivityTimer(35) //35 minutes d'inactivité avant déconnexion
 
 // Enregistrer l'instance du toast quand le composant est monté
 onMounted(() => {

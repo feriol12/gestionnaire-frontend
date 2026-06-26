@@ -55,6 +55,7 @@ export const useBudgetStore = defineStore('budget', () => {
        const response = await budgetApi.getSummary()
 
       summary.value = response.data
+      console.log('SUMMARY API:', response.data)
       return { success: true }
     } catch (err) {
       toast.error('Erreur chargement totaux', { modal: true })
@@ -78,7 +79,7 @@ const addBudget = async (budgetData) => {
     if (err.response?.status === 422) {
       return { success: false, errors: err.response.data.errors }
     }
-    toast.error('Erreur ajout budget', { modal: true })
+    toast.error('Erreur ajout budget - Le montant autorisé est de 8 chiffres', { modal: true })
     return { success: false, errors: null }
   } finally {
     loading.value = false
