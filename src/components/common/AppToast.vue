@@ -108,18 +108,25 @@ const modalDefaultTitle = (variant) => {
 
 const addToast = (toast) => {
   const id = Date.now() + Math.random()
+  
+  // ✅ Durée : 4000 pour les modales, 3000 pour les toasts
+  let duration = toast.duration || 3000
+  if (toast.modal && !toast.duration) {
+    duration = 4000
+  }
+  
   const newToast = {
     id,
     message: toast.message,
     title: toast.title || '',
     variant: toast.variant || 'info',
-    duration: toast.modal ? 0 : (toast.duration || 3000),
+    duration: duration,
     modal: toast.modal || false
   }
   
   toasts.value.push(newToast)
   
-  if (!newToast.modal && newToast.duration > 0) {
+  if (newToast.duration > 0) {
     const timer = setTimeout(() => removeToast(id), newToast.duration)
     timers.set(id, timer)
   }

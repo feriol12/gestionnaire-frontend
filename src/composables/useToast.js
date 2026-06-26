@@ -19,14 +19,13 @@ export const registerToast = (instance) => {
 
 export const useToast = () => {
   const queueOrExecute = (type, message, options = {}) => {
-    // Petit délai pour laisser le temps à registerToast de s'exécuter
     setTimeout(() => {
       if (toastInstance && toastInstance.toast && toastInstance.toast[type]) {
         toastInstance.toast[type](message, options)
       } else {
         pendingQueue.push({ type, message, options })
       }
-    }, 50) // Délai de 50ms
+    }, 50)
   }
 
   const success = (message, options = {}) => queueOrExecute('success', message, options)

@@ -47,7 +47,7 @@ const props = defineProps({
   title: { type: String, default: '' },
   message: { type: String, required: true },
   buttonText: { type: String, default: 'Fermer' },
-  autoClose: { type: Number, default: 2000 } // Auto-fermeture en ms (0 = désactivé)
+  autoClose: { type: Number, default: 4000 } // Auto-fermeture en ms (0 = désactivé)
 });
 
 // ========== EMITS ==========

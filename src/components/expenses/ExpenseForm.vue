@@ -117,6 +117,11 @@
 import { ref, computed, watch } from 'vue';
 import AppSelect from '@/components/common/AppSelect.vue';
 import { useExpenseStore } from '@/stores/useExpenseStore';
+import { useToast } from '@/composables/useToast';
+
+
+// ========== TOAST ==========
+const toast = useToast();  // ← AJOUTE CETTE LIGNE
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -185,6 +190,20 @@ const fillFormWithExpense = () => {
 const submit = async () => {
   loading.value = true;
   errors.value = {};
+
+    // ✅ Validation du montant avant envoi
+  const amount = parseFloat(form.value.amount);
+  if (isNaN(amount) || amount <= 0) {
+    toast.error('Le montant doit être un nombre positif', { modal: true });
+    loading.value = false;
+    return;
+  }
+  
+  if (amount > 99999999.99) {
+    toast.error('Le montant ne peut pas dépasser 99 999 999,99 FCFA', { modal: true });
+    loading.value = false;
+    return;
+  }
   
   const result = isEditing.value 
     ? await expenseStore.updateExpense(props.expense.id, form.value)
