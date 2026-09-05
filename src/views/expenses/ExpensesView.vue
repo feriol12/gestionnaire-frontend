@@ -191,13 +191,9 @@ const handlePeriodChange = (period) => {
 }
 
 const formatAmount = (amount) => {
-  if (amount === undefined || amount === null) return '0,00 €'
+  if (amount === undefined || amount === null) return '0 FCFA'
   const num = parseFloat(amount)
-  return (
-    new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(
-      num,
-    ) + ' €'
-  )
+  return new Intl.NumberFormat('fr-FR').format(num) + ' FCFA'
 }
 
 const periodLabel = computed(() => {

@@ -41,7 +41,7 @@
         <!-- Montant -->
         <div>
           <label class="block text-[13px] font-medium text-slate-500 mb-1">
-            Montant (€) <span class="text-red-500">*</span>
+            Montant (FCFA) <span class="text-red-500">*</span>
           </label>
           <input 
             v-model="form.amount"

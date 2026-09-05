@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import router from '@/router'
 
-export function useInactivityTimer(minutes = 5) {
+export function useInactivityTimer(minutes = 1440) {
   const authStore = useAuthStore()
   let timer = null
 

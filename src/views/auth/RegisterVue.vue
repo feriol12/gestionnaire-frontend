@@ -1,6 +1,11 @@
 <template>
   <div class="min-h-screen bg-slate-50 flex items-center justify-center p-4">
     <div class="w-full max-w-md">
+      <div class="text-center mb-6">
+        <p class="text-sm font-medium text-slate-500 tracking-wide uppercase mb-1">Bienvenue</p>
+        <h1 class="brand-title text-4xl mb-2">MONEVA</h1>
+        <p class="text-slate-500 text-sm">Gérez vos finances simplement</p>
+      </div>
       <AppCard title="Inscription" subtitle="Créez votre compte" hoverable>
         <form @submit.prevent="handleSubmit">
           <AppInput

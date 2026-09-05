@@ -8,7 +8,7 @@
         <div class="flex items-center">
           <router-link to="/dashboard" class="flex items-center space-x-2">
             <span class="text-2xl">💰</span>
-            <span class="font-bold text-gray-800 text-xl hidden sm:block">Dépenses</span>
+            <span class="brand-title text-xl hidden sm:block">MONEVA</span>
           </router-link>
           
           <!-- Navigation desktop - J'AI AJOUTÉ LES 2 BOUTONS MANQUANTS -->

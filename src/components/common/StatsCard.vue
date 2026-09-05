@@ -64,10 +64,7 @@ const formattedValue = computed(() => {
     }).format(props.value) + props.suffix;
   }
   
-  // Format par défaut (euros)
-  return new Intl.NumberFormat('fr-FR', { 
-    minimumFractionDigits: 2, 
-    maximumFractionDigits: 2 
-  }).format(props.value) + ' FCFA';
+  // Format par défaut (FCFA)
+  return new Intl.NumberFormat('fr-FR').format(props.value) + ' FCFA';
 });
 </script>
