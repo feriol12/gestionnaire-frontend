@@ -1,3 +1,13 @@
 /* @import './base.css'; */
 @import 'tailwindcss';
 
+.brand-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  background: linear-gradient(90deg, #16a34a, #2563eb);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+

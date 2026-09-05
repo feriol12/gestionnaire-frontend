@@ -69,10 +69,7 @@ const exportToPDF = async () => {
   };
   
   const formatAmount = (amount) => {
-    return new Intl.NumberFormat('fr-FR', { 
-      minimumFractionDigits: 2, 
-      maximumFractionDigits: 2 
-    }).format(amount) + ' €';
+    return new Intl.NumberFormat('fr-FR').format(amount) + ' FCFA';
   };
   
   const formatDate = (date) => {

@@ -8,7 +8,7 @@
         <div class="flex items-center">
           <router-link to="/dashboard" class="flex items-center space-x-2">
             <span class="text-2xl">💰</span>
-            <span class="font-bold text-gray-800 text-xl hidden sm:block">Dépenses</span>
+            <span class="brand-title text-lg sm:text-xl">MONEVA</span>
           </router-link>
           
           <!-- Navigation desktop - J'AI AJOUTÉ LES 2 BOUTONS MANQUANTS -->
@@ -71,7 +71,7 @@
             </div>
           </div>
           
-          <div v-else class="flex items-center space-x-3">
+          <div v-else class="hidden md:flex items-center space-x-3">
             <router-link to="/login" class="px-4 py-2 text-gray-600 hover:text-gray-800 transition">
               Connexion
             </router-link>

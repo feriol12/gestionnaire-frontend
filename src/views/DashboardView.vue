@@ -526,7 +526,7 @@ const alertes = computed(() => {
     list.push({
       icon: '🚨',
       title: 'Budget dépassé',
-      message: `Vous avez dépassé votre budget de ${(depenses - budget).toLocaleString()} F`,
+      message: `Vous avez dépassé votre budget de ${(depenses - budget).toLocaleString('fr-FR')} FCFA`,
       bgColor: 'bg-red-50',
       action: 'Voir détails'
     })
