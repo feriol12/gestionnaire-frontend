@@ -12,7 +12,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import axios from 'axios';
+import apiClient from '@/services/apiClient';
 import AppButton from './AppButton.vue';
 
 const props = defineProps({
@@ -31,11 +31,9 @@ const handleExport = async () => {
   emit('export-start');
   
   try {
-    const token = localStorage.getItem('token');
-    const response = await axios.get('/api/export/pdf', {
+    const response = await apiClient.get('/export/pdf', {
       params: { period: props.period },
       responseType: 'blob',
-      headers: { Authorization: `Bearer ${token}` }
     });
     
     const url = URL.createObjectURL(response.data);

@@ -2,8 +2,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import RegisterVue from '@/views/auth/RegisterVue.vue'
 import LoginVue from '@/views/auth/LoginVue.vue'
-import ExpensesView from '@/views/expenses/ExpensesView.vue'  // ← AJOUT
-import { useAuthStore } from '@/stores/useAuthStore'; 
+import { useAuthStore } from '@/stores/useAuthStore';
 import MainLayout from '@/components/layout/MainLayout.vue';
 import DashboardView from '@/views/DashboardView.vue'
 import Test from '@/views/Test.vue'
