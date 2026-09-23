@@ -1,13 +1,139 @@
 /* @import './base.css'; */
 @import 'tailwindcss';
 
+/*
+ * MONEVA V2 design tokens — canonical values from MONEVA_V2_DESIGN.md §7.
+ * Tailwind v4 CSS-first theme (no tailwind.config.js in this project).
+ * Token names below map to the design doc's color tokens using
+ * Tailwind's --color-<name> convention, which generates bg-, text-,
+ * and border- utilities automatically (e.g. color-primary -> bg-primary).
+ */
+@theme {
+  /* Color */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-ink: #0f172a;
+  --color-positive: #10b981;
+  --color-positive-bg: #ecfdf5;
+  --color-expense: #f43f5e;
+  --color-expense-bg: #fff1f2;
+  --color-warning: #f59e0b;
+  --color-canvas: #f8fafc;
+  --color-surface: #ffffff;
+  --color-border: #e2e8f0;
+  --color-border-soft: #f1f5f9;
+  --color-text-muted: #475569;
+  --color-text-muted-light: #64748b;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+  --text-display-hero: 36px;
+  --text-display-hero--line-height: 44px;
+  --text-display-hero--font-weight: 700;
+  --text-display-hero-mobile: 28px;
+  --text-display-hero-mobile--line-height: 36px;
+  --text-display-hero-mobile--font-weight: 700;
+  --text-headline-lg: 24px;
+  --text-headline-lg--line-height: 32px;
+  --text-headline-lg--font-weight: 700;
+  --text-headline-md: 20px;
+  --text-headline-md--line-height: 28px;
+  --text-headline-md--font-weight: 600;
+  --text-headline-sm: 16px;
+  --text-headline-sm--line-height: 24px;
+  --text-headline-sm--font-weight: 600;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 24px;
+  --text-body-lg--font-weight: 400;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 20px;
+  --text-body-md--font-weight: 400;
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 18px;
+  --text-body-sm--font-weight: 400;
+  --text-label-lg: 14px;
+  --text-label-lg--line-height: 20px;
+  --text-label-lg--font-weight: 600;
+  --text-label-md: 12px;
+  --text-label-md--line-height: 16px;
+  --text-label-md--font-weight: 600;
+  --text-label-sm: 11px;
+  --text-label-sm--line-height: 14px;
+  --text-label-sm--font-weight: 600;
+  --text-currency: 28px;
+  --text-currency--line-height: 34px;
+  --text-currency--font-weight: 700;
+
+  /* Spacing (aliases over Tailwind's default 4px scale, named per design doc) */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /*
+   * MONEVA radii — namespaced (radius-moneva-*) so they add new
+   * rounded-moneva-* utilities without touching Tailwind's native
+   * rounded-sm/md/lg/xl, which the production app already uses.
+   */
+  --radius-moneva-sm: 4px;
+  --radius-moneva: 8px;
+  --radius-moneva-md: 12px;
+  --radius-moneva-lg: 16px;
+  --radius-moneva-xl: 24px;
+
+  /* Elevation */
+  --shadow-low: 0 1px 3px 0 rgba(15, 23, 42, .03), 0 1px 2px -1px rgba(15, 23, 42, .03);
+  --shadow-medium: 0 10px 25px -5px rgba(15, 23, 42, .05), 0 8px 10px -6px rgba(15, 23, 42, .02);
+  --shadow-high: 0 20px 30px -10px rgba(15, 23, 42, .12);
+}
+
+/*
+ * Global typography foundation — Plus Jakarta Sans app-wide per
+ * MONEVA_V2_DESIGN.md §7. Currency/amount figures should additionally use
+ * Tailwind's built-in `tabular-nums` utility where displayed (Phase 5+).
+ */
+body {
+  font-family: var(--font-sans);
+}
+
+/*
+ * Global accessibility foundation per MONEVA_V2_DESIGN.md §15.
+ * Visible focus-visible ring using the primary token; does not remove
+ * outlines without an accessible replacement.
+ */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/*
+ * Global motion foundation per MONEVA_V2_DESIGN.md §15 Motion Specification.
+ * Component-level transitions (modals, sheets, lists) belong to later
+ * phases; this is only the reduced-motion accommodation every future
+ * transition must respect.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * MONEVA V2 brand-title — solid navy identity per MONEVA_V2_DESIGN.md §6,
+ * replacing the prior Poppins + green->blue gradient treatment. Presentation
+ * only; markup in RegisterVue.vue/LoginVue.vue/Navbar.vue is unchanged.
+ */
 .brand-title {
-  font-family: 'Poppins', sans-serif;
-  font-weight: 800;
+  font-family: var(--font-sans);
+  font-weight: 700;
   letter-spacing: -0.02em;
-  background: linear-gradient(90deg, #16a34a, #2563eb);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: var(--color-ink);
 }
 
