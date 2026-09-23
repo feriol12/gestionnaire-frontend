@@ -1,5 +1,5 @@
 <template>
-  <div :id="id" class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-card">
+  <div :id="id" class="bg-white rounded-moneva-lg border border-slate-200 overflow-hidden shadow-card">
     
     <!-- HEADER -->
     <div v-if="$slots.header || title" class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -14,8 +14,9 @@
     </div>
     
     <!-- LOADING -->
-    <div v-if="loading" class="flex justify-center items-center py-20">
-      <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+    <div v-if="loading" class="flex justify-center items-center py-20" role="status" aria-live="polite">
+      <div class="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      <span class="sr-only">Chargement…</span>
     </div>
     
     <!-- TABLEAU -->
@@ -88,7 +89,7 @@
             :key="page"
             @click="goToPage(page)"
             class="w-9 h-9 rounded-lg text-sm font-medium transition"
-            :class="page === currentPage ? 'bg-blue-600 text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'"
+            :class="page === currentPage ? 'bg-primary text-white' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'"
           >
             {{ page }}
           </button>
@@ -248,6 +249,6 @@ onUnmounted(() => {
   animation: spin 0.8s linear infinite;
 }
 .shadow-card {
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+  box-shadow: var(--shadow-low);
 }
 </style>

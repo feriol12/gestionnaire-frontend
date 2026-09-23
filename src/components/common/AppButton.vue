@@ -3,9 +3,13 @@
     :type="type"
     :class="['btn', `btn-${variant}`, { 'btn-loading': loading, 'btn-full': fullWidth }]"
     :disabled="disabled || loading"
+    :aria-busy="loading ? 'true' : undefined"
     @click="$emit('click')"
   >
-    <span v-if="loading" class="btn-spinner"></span>
+    <template v-if="loading">
+      <span class="btn-spinner" aria-hidden="true"></span>
+      <span class="sr-only">Chargement…</span>
+    </template>
     <slot v-else>{{ text }}</slot>
   </button>
 </template>
@@ -43,6 +47,15 @@ const emit = defineEmits(['click']);
 </script>
 
 <style scoped>
+/*
+ * MONEVA V2 restyle — same 5 variants, props, emits, and DOM structure as
+ * before; only the visual treatment moves to Phase 1 tokens. Colors below
+ * intentionally reuse MONEVA_V2_DESIGN.md §7 tokens where a variant maps
+ * cleanly onto one (primary/danger->expense/success->positive); `secondary`
+ * has no dedicated design-doc token, so it keeps its original neutral
+ * slate hue, now sourced from the existing color-text-muted(-light)
+ * tokens rather than a hardcoded hex (their values already matched).
+ */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -50,9 +63,9 @@ const emit = defineEmits(['click']);
   height: 44px; /* Même hauteur que les inputs */
   padding: 0 1.25rem;
   font-size: 0.875rem;
-  font-weight: 500;
-  border-radius: 0.375rem;
-  transition: all 0.2s;
+  font-weight: 600;
+  border-radius: var(--radius-moneva);
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
   cursor: pointer;
   border: none;
   gap: 0.5rem;
@@ -71,44 +84,39 @@ const emit = defineEmits(['click']);
   width: 100%;
 }
 
-/* Primary variant - Blue */
+/* Primary variant */
 .btn-primary {
-  background-color: #3b82f6;
+  background-color: var(--color-primary);
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #2563eb;
-}
-
-.btn-primary:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px #93c5fd;
+  background-color: var(--color-primary-hover);
 }
 
 /* Secondary variant */
 .btn-secondary {
-  background-color: #64748b;
+  background-color: var(--color-text-muted-light);
   color: white;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background-color: #475569;
+  background-color: var(--color-text-muted);
 }
 
 /* Danger variant */
 .btn-danger {
-  background-color: #ef4444;
+  background-color: var(--color-expense);
   color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #dc2626;
+  background-color: #e11d48;
 }
 
 /* Success variant */
 .btn-success {
-  background-color: #10b981;
+  background-color: var(--color-positive);
   color: white;
 }
 
@@ -119,16 +127,25 @@ const emit = defineEmits(['click']);
 /* Outline variant */
 .btn-outline {
   background-color: transparent;
-  border: 1px solid #3b82f6;
-  color: #3b82f6;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
 }
 
 .btn-outline:hover:not(:disabled) {
-  background-color: #3b82f6;
+  background-color: var(--color-primary);
   color: white;
 }
 
-/* Loading spinner */
+/* Keyboard-focus ring only (mouse/touch focus stays quiet) */
+.btn:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Loading spinner — paused (not spun) under prefers-reduced-motion via the
+ * global rule in main.css; aria-busy + the sr-only label below keep the
+ * busy state understandable to assistive tech and reduced-motion users
+ * even when the ring itself isn't rotating. */
 .btn-spinner {
   width: 1rem;
   height: 1rem;
