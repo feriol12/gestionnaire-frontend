@@ -1,13 +1,10 @@
 <!-- src/components/layout/MainLayout.vue -->
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <Navbar />
-    <main class="pt-4 pb-8">
-      <router-view />
-    </main>
-  </div>
+  <AppShell>
+    <router-view />
+  </AppShell>
 </template>
 
 <script setup>
-import Navbar from '@/components/common/Navbar.vue';
+import AppShell from './AppShell.vue';
 </script>
