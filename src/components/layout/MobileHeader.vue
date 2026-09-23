@@ -13,6 +13,7 @@
   <header class="mobile-header">
     <RouterLink to="/dashboard" custom v-slot="{ navigate, href }">
       <a :href="href" class="mobile-header-brand" @click="navigate">
+        <MonevaMark class="mobile-header-mark" />
         <span class="brand-title text-base">MONEVA</span>
       </a>
     </RouterLink>
@@ -33,6 +34,7 @@
 import { RouterLink, useRouter } from 'vue-router';
 import { LogOut } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
+import MonevaMark from '@/components/brand/MonevaMark.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -69,10 +71,16 @@ const handleLogout = async () => {
 .mobile-header-brand {
   display: inline-flex;
   align-items: center;
+  gap: var(--spacing-sm);
   min-width: 44px;
   min-height: 44px;
   padding: 0 4px;
   margin-left: -4px;
+}
+
+.mobile-header-mark {
+  width: 28px;
+  height: 28px;
 }
 
 .mobile-header-logout {

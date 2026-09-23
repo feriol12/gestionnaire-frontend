@@ -8,17 +8,18 @@
   approved Login/Register Mobile composition (§5/§10), which was already a
   single-card layout before this restyle.
 
-  The marketing pane is decorative only: brand wordmark + a short static
-  tagline, no data, no illustration graphic. No approved illustration/symbol
-  asset is available in this session (Stitch auth unavailable, same
-  constraint as P3-04) — rather than fabricate one, the pane uses a
-  CSS-only gradient background. See the Phase 4 report for this limitation.
+  The marketing pane is decorative only: the exact canonical MONEVA symbol
+  (MonevaMark, P3-04) + brand wordmark + a short static tagline, no data, no
+  illustration graphic. The background remains a CSS-only gradient.
 -->
 <template>
   <div class="auth-shell">
     <aside class="auth-shell-marketing" aria-hidden="true">
       <div class="auth-shell-marketing-inner">
-        <span class="brand-title auth-shell-brand">MONEVA</span>
+        <div class="auth-shell-brand-row">
+          <MonevaMark class="auth-shell-mark" />
+          <span class="brand-title auth-shell-brand">MONEVA</span>
+        </div>
         <p class="auth-shell-tagline">{{ tagline }}</p>
       </div>
     </aside>
@@ -32,6 +33,8 @@
 </template>
 
 <script setup>
+import MonevaMark from '@/components/brand/MonevaMark.vue';
+
 defineProps({
   tagline: {
     type: String,
@@ -70,6 +73,17 @@ defineProps({
 .auth-shell-marketing-inner {
   max-width: 360px;
   padding: var(--spacing-xl);
+}
+
+.auth-shell-brand-row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.auth-shell-mark {
+  width: 56px;
+  height: 56px;
 }
 
 .auth-shell-brand {

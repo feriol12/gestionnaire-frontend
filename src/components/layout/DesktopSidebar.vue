@@ -12,6 +12,7 @@
     <div class="desktop-sidebar-brand">
       <RouterLink to="/dashboard" custom v-slot="{ navigate, href }">
         <a :href="href" class="desktop-sidebar-brand-link" @click="navigate">
+          <MonevaMark class="desktop-sidebar-mark" />
           <span class="brand-title text-lg">MONEVA</span>
         </a>
       </RouterLink>
@@ -51,6 +52,7 @@ import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
 import { LayoutDashboard, Receipt, Target, LogOut } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
+import MonevaMark from '@/components/brand/MonevaMark.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -102,6 +104,12 @@ const handleLogout = async () => {
 .desktop-sidebar-brand-link {
   display: inline-flex;
   align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.desktop-sidebar-mark {
+  width: 32px;
+  height: 32px;
 }
 
 .desktop-sidebar-nav {
