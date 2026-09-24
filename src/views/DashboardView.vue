@@ -1,330 +1,122 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      
-      <!-- HEADER -->
-      <div class="mb-8">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 class="text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
-              Tableau de bord
-            </h1>
-            <p class="text-slate-500 mt-1">
-              Vue d'ensemble de vos finances
-            </p>
-          </div>
-          
-          <div class="flex gap-3">
-            <PeriodFilter 
-              :period="currentPeriod" 
-              :options="periodOptions"
-              @update:period="handlePeriodChange"
-            />
-           
-          </div>
+  <div class="dash-page">
+
+    <!-- HEADER -->
+    <header class="dash-header">
+      <div class="dash-heading">
+        <h1 class="dash-title">Tableau de bord</h1>
+        <p class="dash-subtitle">Vue d'ensemble de vos finances</p>
+      </div>
+
+      <div class="dash-filter">
+        <PeriodFilter
+          :period="currentPeriod"
+          :options="periodOptions"
+          @update:period="handlePeriodChange"
+        />
+      </div>
+    </header>
+
+    <!-- STATS (4 cartes principales) -->
+    <section class="dash-stats" aria-label="Indicateurs clés">
+      <DashboardStatCard
+        label="Budget total"
+        :value="formatNumber(stats.budget_total)"
+        unit="FCFA"
+        :caption="currentPeriod === 'year' ? 'Budgets de cette année' : 'Budgets de ce mois'"
+        :icon="Wallet"
+      />
+      <DashboardStatCard
+        label="Dépenses"
+        :value="formatNumber(stats.depenses_total)"
+        unit="FCFA"
+        caption="Ce mois"
+        :icon="Receipt"
+      />
+      <DashboardStatCard
+        label="Restant"
+        :value="formatNumber(stats.restant)"
+        unit="FCFA"
+        caption="À dépenser"
+        :icon="ShieldCheck"
+      />
+      <DashboardStatCard
+        label="Taux d'épargne"
+        :value="`${stats.taux_epargne}%`"
+        caption="Du budget"
+        :icon="Percent"
+      />
+    </section>
+
+    <!-- VISUALISATIONS (2 colonnes) -->
+    <div class="dash-viz">
+
+      <!-- Évolution des dépenses -->
+      <section class="dash-card" aria-labelledby="dash-evolution-title">
+        <div class="dash-card-head">
+          <h2 id="dash-evolution-title" class="dash-card-title">Évolution des dépenses</h2>
+          <span class="dash-chip">{{ currentPeriod === 'year' ? 'Cette année' : 'Ce mois' }}</span>
         </div>
-      </div>
 
-      <!-- STATS CARDS (4 cartes principales) -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        <!-- Carte Budget total -->
-        <StatsCard
-          label="Budget total"
-          :value="stats.budget_total"
-          icon="💰"
-          subtitle="Ce mois"
-          icon-bg-class="bg-blue-100"
-          :trend="{ value: 5, isPositive: true }"
-        />
-        
-        <!-- Carte Dépenses -->
-        <StatsCard
-          label="Dépenses"
-          :value="stats.depenses_total"
-          icon="💸"
-          subtitle="Ce mois"
-          icon-bg-class="bg-red-100"
-          :trend="{ value: 8, isPositive: false }"
-        />
-        
-        <!-- Carte Restant -->
-        <StatsCard
-          label="Restant"
-          :value="stats.restant"
-          icon="💪"
-          subtitle="À dépenser"
-          icon-bg-class="bg-emerald-100"
-        />
-        
-        <!-- Carte Taux d'épargne -->
-        <StatsCard
-          label="Taux d'épargne"
-          :value="stats.taux_epargne"
-          :is-percentage="true"
-          icon="📈"
-          subtitle="Du budget"
-          icon-bg-class="bg-purple-100"
-          :trend="{ value: 3, isPositive: true }"
-        />
-      </div>
+        <DashboardEvolutionChart :data="evolutionData" caption="Dépenses par mois" />
 
-      <!-- GRAPHIQUES (2 colonnes) -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        
-        <!-- Graphique: Dépenses par catégorie -->
-        <AppCard class="overflow-hidden">
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-1 h-6 bg-blue-500 rounded-full"></div>
-                <h3 class="text-lg font-semibold text-slate-700">
-                  Dépenses par catégorie
-                </h3>
-              </div>
-              <span class="text-sm text-slate-400">Ce mois</span>
-            </div>
-          </template>
-          
-          <div class="space-y-4">
-            <div 
-              v-for="cat in categories" 
-              :key="cat.nom"
-              class="space-y-2"
-            >
-              <div class="flex justify-between text-sm">
-                <span class="text-slate-600">{{ cat.nom }}</span>
-                <span class="font-medium text-slate-700">
-                  {{ cat.montant.toLocaleString() }} F
-                </span>
-              </div>
-              <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  class="h-full rounded-full transition-all duration-500"
-                  :class="cat.color"
-                  :style="{ width: cat.pourcentage + '%' }"
-                ></div>
-              </div>
-              <div class="flex justify-between text-xs text-slate-400">
-                <span>{{ cat.pourcentage }}%</span>
-                <span>sur {{ cat.total.toLocaleString() }} F</span>
-              </div>
-            </div>
-          </div>
-          
-          <template #footer>
-            <div class="text-sm text-slate-500 flex justify-between items-center">
-              <span>📊 Total: {{ totalDepenses.toLocaleString() }} F</span>
-             
-              <RouterLink
-              :to="{ name: 'expenses' }"
-              class="text-blue-500 hover:text-blue-600 text-sm"
-            >
-              Voir détails →
-            </RouterLink>
-            </div>
-          </template>
-        </AppCard>
-
-        <!-- Graphique: Évolution mensuelle -->
-        <AppCard>
-          <template #header>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-1 h-6 bg-emerald-500 rounded-full"></div>
-                <h3 class="text-lg font-semibold text-slate-700">
-                  Évolution des dépenses
-                </h3>
-              </div>
-              <span class="text-sm text-slate-400">{{ currentPeriod === 'year' ? 'Cette année' : 'Ce mois' }}</span>
-            </div>
-          </template>
-          
-          <!-- Graphique en barres simplifié -->
-          <div class="flex items-end justify-between gap-2 h-48">
-            <div 
-              v-for="(item, index) in evolutionData" 
-              :key="index"
-              class="flex-1 flex flex-col items-center gap-2"
-            >
-              <div 
-                class="w-full bg-emerald-500/20 rounded-t-lg hover:bg-emerald-500/30 transition-all cursor-pointer relative group"
-                :style="{ height: (item.montant / maxEvolution) * 120 + 'px' }"
-              >
-                <div 
-                  class="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap"
-                >
-                  {{ item.montant.toLocaleString() }} F
-                </div>
-              </div>
-              <span class="text-xs text-slate-500">{{ item.label }}</span>
-            </div>
-          </div>
-          
-          <template #footer>
-            <div class="text-sm text-slate-500 flex justify-between">
-              <span>📈 {{ stats.variation_budget > 0 ? '+' : '' }}
-                           {{ stats.variation_budget.toFixed(1) }}% vs mois dernier</span>
-              <span>🎯 Objectif: {{ (stats.budget_total * 0.8).toLocaleString() }} F</span>
-            </div>
-          </template>
-        </AppCard>
-      </div>
-
-      <!-- SECTION: Dernières dépenses + Alertes -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        
-        <!-- Dernières transactions -->
-        <div class="lg:col-span-2">
-          <AppCard>
-            <template #header>
-              <div class="flex items-center gap-3">
-                <div class="w-1 h-6 bg-amber-500 rounded-full"></div>
-                <h3 class="text-lg font-semibold text-slate-700">
-                  Dernières transactions
-                </h3>
-              </div>
-           
-              <RouterLink :to="{name : 'expenses'}" class="text-sm text-blue-500 hover:text-blue-600">
-                       Voir toutes →
-              </RouterLink>
-            </template>
-            
-            <div class="space-y-3">
-              <div 
-                v-for="transaction in recentTransactions" 
-                :key="transaction.id"
-                class="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-all"
-              >
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xl">
-                    {{ transaction.icon }}
-                  </div>
-                  <div>
-                    <p class="font-medium text-slate-700">{{ transaction.description }}</p>
-                    <p class="text-xs text-slate-400">{{ transaction.date }} • {{ transaction.categorie }}</p>
-                  </div>
-                </div>
-                <div class="text-right">
-                  <p class="font-semibold text-red-600">-{{ transaction.montant.toLocaleString() }} F</p>
-                  <p class="text-xs text-slate-400">{{ transaction.status }}</p>
-                </div>
-              </div>
-            </div>
-            
-            <template #footer>
-              <div class="flex justify-between items-center">
-                <span class="text-sm text-slate-500">💰 Total dépenses: {{ totalDepensesRecent.toLocaleString() }} F</span>
-              </div>
-            </template>
-          </AppCard>
+        <div class="dash-card-foot">
+          <span class="dash-foot-item">
+            <TrendingUp class="dash-foot-icon" aria-hidden="true" />
+            {{ stats.variation_budget > 0 ? '+' : '' }}{{ stats.variation_budget.toFixed(1) }}% vs mois dernier
+          </span>
+          <span class="dash-foot-item">
+            <Target class="dash-foot-icon" aria-hidden="true" />
+            Objectif : {{ formatNumber(stats.budget_total * 0.8) }} FCFA
+          </span>
         </div>
-        
-        <!-- Alertes & Conseils -->
-        <div>
-          <AppCard>
-            <template #header>
-              <div class="flex items-center gap-3">
-                <div class="w-1 h-6 bg-red-500 rounded-full"></div>
-                <h3 class="text-lg font-semibold text-slate-700">
-                  Alertes
-                </h3>
-              </div>
-            </template>
-            
-            <div class="space-y-4">
-              <div 
-                v-for="(alerte, index) in alertes" 
-                :key="index"
-                class="p-3 rounded-xl"
-                :class="alerte.bgColor"
-              >
-                <div class="flex items-start gap-2">
-                  <span class="text-xl">{{ alerte.icon }}</span>
-                  <div>
-                    <p class="font-medium text-slate-700">{{ alerte.title }}</p>
-                    <p class="text-sm text-slate-500">{{ alerte.message }}</p>
-                    <button 
-                      v-if="alerte.action"
-                      class="text-sm text-blue-500 mt-1 hover:text-blue-600"
-                    >
-                      {{ alerte.action }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <template #footer>
-              <div class="text-center text-sm text-slate-500">
-                <i class="text-amber-500">💡</i> Conseil: Épargnez 20% de vos revenus
-              </div>
-            </template>
-          </AppCard>
-        </div>
-      </div>
+      </section>
 
-      <!-- BUDGETS RAPIDES -->
-      <!-- <div>
-        <AppCard>
-          <template #header>
-            <div class="flex items-center gap-3">
-              <div class="w-1 h-6 bg-purple-500 rounded-full"></div>
-              <h3 class="text-lg font-semibold text-slate-700">
-                Budgets actifs
-              </h3>
-            </div>
-            <button class="text-sm text-blue-500 hover:text-blue-600">
-              + Ajouter un budget
-            </button>
-          </template>
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div 
-              v-for="budget in budgetsActifs" 
-              :key="budget.id"
-              class="p-4 border border-slate-100 rounded-xl hover:shadow-md transition-all"
-            >
-              <div class="flex justify-between items-start mb-2">
-                <div>
-                  <h4 class="font-semibold text-slate-700">{{ budget.categorie }}</h4>
-                  <p class="text-xs text-slate-400">{{ budget.period }}</p>
-                </div>
-                <span class="text-sm font-medium" :class="budget.restant > 0 ? 'text-emerald-600' : 'text-red-600'">
-                  {{ budget.restant > 0 ? '✅' : '⚠️' }}
-                </span>
-              </div>
-              
-              <div class="mb-2">
-                <div class="flex justify-between text-sm mb-1">
-                  <span class="text-slate-500">Dépensé</span>
-                  <span>{{ budget.depense.toLocaleString() }} / {{ budget.montant.toLocaleString() }} F</span>
-                </div>
-                <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                  <div 
-                    class="h-full rounded-full transition-all"
-                    :class="budget.pourcentage > 80 ? 'bg-red-500' : 'bg-emerald-500'"
-                    :style="{ width: budget.pourcentage + '%' }"
-                  ></div>
-                </div>
-              </div>
-              
-              <div class="flex justify-between text-xs">
-                <span class="text-slate-400">Restant: {{ budget.restant.toLocaleString() }} F</span>
-                <span class="text-slate-400">{{ budget.pourcentage }}% utilisé</span>
-              </div>
-            </div>
-          </div>
-        </AppCard>
-      </div> -->
-      
+      <!-- Dépenses par catégorie -->
+      <section class="dash-card" aria-labelledby="dash-categories-title">
+        <div class="dash-card-head">
+          <h2 id="dash-categories-title" class="dash-card-title">Dépenses par catégorie</h2>
+          <span class="dash-chip">Ce mois</span>
+        </div>
+
+        <DashboardCategoryBreakdown :categories="categories" />
+
+        <div class="dash-card-foot">
+          <span>Total : {{ formatNumber(totalDepenses) }} FCFA</span>
+          <RouterLink :to="{ name: 'expenses' }" class="dash-link">
+            Voir détails
+            <ArrowRight class="dash-link-icon" aria-hidden="true" />
+          </RouterLink>
+        </div>
+      </section>
     </div>
+
+    <!-- Dernières transactions + Alertes -->
+    <div class="dash-lower">
+
+      <section class="dash-card" aria-labelledby="dash-recent-title">
+        <div class="dash-card-head">
+          <h2 id="dash-recent-title" class="dash-card-title">Dernières transactions</h2>
+          <RouterLink :to="{ name: 'expenses' }" class="dash-link">
+            Voir toutes
+            <ArrowRight class="dash-link-icon" aria-hidden="true" />
+          </RouterLink>
+        </div>
+
+        <DashboardRecentList :transactions="recentTransactions" />
+      </section>
+
+      <section class="dash-card" aria-labelledby="dash-alerts-title">
+        <div class="dash-card-head">
+          <h2 id="dash-alerts-title" class="dash-card-title">Alertes</h2>
+        </div>
+
+        <DashboardAlerts :alerts="alertes" />
+      </section>
+    </div>
+
   </div>
 </template>
-
-
-
-
-
 
 <script setup>
 import { ref, computed, onMounted, watchEffect } from 'vue'
@@ -334,9 +126,16 @@ import apiClient from '@/services/apiClient' // ← Import apiClient
 import { useAuthStore } from '@/stores/useAuthStore' // ← Pour vérifier l'auth
 import { useRouter } from 'vue-router' // ← Pour redirection
 
-import AppCard from '@/components/common/AppCard.vue'
-import StatsCard from '@/components/common/StatsCard.vue'
+import { Wallet, Receipt, ShieldCheck, Percent, TrendingUp, Target, ArrowRight } from 'lucide-vue-next'
 import PeriodFilter from '@/components/common/PeriodFilter.vue'
+import DashboardStatCard from '@/components/dashboard/DashboardStatCard.vue'
+import DashboardEvolutionChart from '@/components/dashboard/DashboardEvolutionChart.vue'
+import DashboardCategoryBreakdown from '@/components/dashboard/DashboardCategoryBreakdown.vue'
+import DashboardRecentList from '@/components/dashboard/DashboardRecentList.vue'
+import DashboardAlerts from '@/components/dashboard/DashboardAlerts.vue'
+
+// Présentation uniquement (même rendu fr-FR que l'ancienne StatsCard).
+const formatNumber = (value) => new Intl.NumberFormat('fr-FR').format(value)
 
 // STORES
 const budgetStore = useBudgetStore()
@@ -593,3 +392,170 @@ onMounted(() => {
   fetchRecentTransactions()
 })
 </script>
+
+<style scoped>
+.dash-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+/* ---------- Header ---------- */
+.dash-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.dash-heading {
+  min-width: 0;
+}
+
+.dash-title {
+  font-size: var(--text-display-hero-mobile);
+  line-height: var(--text-display-hero-mobile--line-height);
+  font-weight: var(--text-display-hero-mobile--font-weight);
+  letter-spacing: -0.02em;
+  color: var(--color-ink);
+}
+
+.dash-subtitle {
+  margin-top: var(--spacing-xs);
+  font-size: var(--text-body-md);
+  line-height: var(--text-body-md--line-height);
+  color: var(--color-text-muted);
+}
+
+.dash-filter {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* ---------- Grids ---------- */
+.dash-stats,
+.dash-viz,
+.dash-lower {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-md);
+}
+
+/* ---------- Cards ---------- */
+.dash-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  min-width: 0;
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--radius-moneva-lg);
+  box-shadow: var(--shadow-low);
+}
+
+.dash-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+}
+
+.dash-card-title {
+  font-size: var(--text-headline-md);
+  line-height: var(--text-headline-md--line-height);
+  font-weight: var(--text-headline-md--font-weight);
+  color: var(--color-ink);
+}
+
+.dash-chip {
+  padding: 2px 10px;
+  font-size: var(--text-label-sm);
+  line-height: var(--text-label-sm--line-height);
+  font-weight: var(--text-label-sm--font-weight);
+  color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface));
+  border-radius: 999px;
+}
+
+.dash-card-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm) var(--spacing-md);
+  margin-top: auto;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border-soft);
+  font-size: var(--text-body-sm);
+  line-height: var(--text-body-sm--line-height);
+  color: var(--color-text-muted);
+}
+
+.dash-foot-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dash-foot-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary);
+}
+
+.dash-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-label-lg);
+  line-height: var(--text-label-lg--line-height);
+  font-weight: var(--text-label-lg--font-weight);
+  color: var(--color-primary);
+  border-radius: var(--radius-moneva-sm);
+}
+
+.dash-link:hover {
+  color: var(--color-primary-hover);
+}
+
+.dash-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.dash-link-icon {
+  width: 16px;
+  height: 16px;
+}
+
+@media (min-width: 640px) {
+  .dash-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 768px) {
+  .dash-title {
+    font-size: var(--text-display-hero);
+    line-height: var(--text-display-hero--line-height);
+    font-weight: var(--text-display-hero--font-weight);
+  }
+}
+
+@media (min-width: 1024px) {
+  .dash-stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .dash-viz {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dash-lower {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+</style>

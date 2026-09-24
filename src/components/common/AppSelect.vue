@@ -14,11 +14,13 @@
       @change="$emit('update:modelValue', $event.target.value)"
       :required="required"
       :disabled="disabled"
+      :aria-invalid="error ? 'true' : undefined"
+      :aria-describedby="describedBy"
       :class="[
-        'w-full h-11 px-4 py-2.5 text-sm rounded-xl border transition-all duration-150',
-        'focus:outline-none focus:ring-2 focus:ring-blue-300 focus:border-blue-500',
-        error 
-          ? 'border-red-500 bg-red-50' 
+        'w-full h-11 px-4 py-2.5 text-sm rounded-moneva border transition-all duration-150',
+        'focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary',
+        error
+          ? 'border-expense bg-expense-bg'
           : 'border-slate-200 bg-white hover:border-slate-300',
         disabled ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : 'cursor-pointer'
       ]"
@@ -26,29 +28,31 @@
       <option v-if="placeholder" value="" disabled selected class="text-slate-400">
         {{ placeholder }}
       </option>
-      <option 
-        v-for="option in options" 
-        :key="option.value" 
+      <option
+        v-for="option in options"
+        :key="option.value"
         :value="option.value"
       >
         {{ option.label }}
       </option>
     </select>
-    
+
     <!-- Message d'erreur -->
-    <p v-if="error" class="text-xs text-red-500 mt-1">
+    <p v-if="error" class="text-xs text-expense mt-1" :id="`${id}-error`" role="alert">
       {{ error }}
     </p>
-    
+
     <!-- Hint d'aide -->
-    <p v-if="hint" class="text-xs text-slate-400 mt-1">
+    <p v-if="hint" class="text-xs text-slate-400 mt-1" :id="`${id}-hint`">
       {{ hint }}
     </p>
   </div>
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue';
+
+const props = defineProps({
   modelValue: {
     type: String,
     default: ''
@@ -89,4 +93,11 @@ defineProps({
 });
 
 defineEmits(['update:modelValue']);
+
+const describedBy = computed(() => {
+  const ids = [];
+  if (props.error) ids.push(`${props.id}-error`);
+  if (props.hint) ids.push(`${props.id}-hint`);
+  return ids.length ? ids.join(' ') : undefined;
+});
 </script>

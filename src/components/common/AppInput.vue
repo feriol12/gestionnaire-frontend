@@ -24,29 +24,31 @@
   :placeholder="placeholder"
   :required="required"
   :disabled="disabled"
+  :aria-invalid="error ? 'true' : undefined"
+  :aria-describedby="describedBy"
   :class="['form-input', { 'is-focused': isFocused, 'is-invalid': error }]"
   @focus="isFocused = true"
 />
-    
+
     <!-- Checkbox special case -->
     <div v-if="type === 'checkbox' && label" class="checkbox-label">
       <label :for="id" class="form-label-checkbox">
         {{ label }}
       </label>
     </div>
-    
-    <div v-if="error" class="form-error">
+
+    <div v-if="error" class="form-error" :id="`${id}-error`" role="alert">
       {{ error }}
     </div>
-    
-    <div v-if="hint" class="form-hint">
+
+    <div v-if="hint" class="form-hint" :id="`${id}-hint`">
       {{ hint }}
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 
 const props = defineProps({
   modelValue: {
@@ -94,9 +96,17 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'blur']);
 const isFocused = ref(false);
+
+const describedBy = computed(() => {
+  const ids = [];
+  if (props.error) ids.push(`${props.id}-error`);
+  if (props.hint) ids.push(`${props.id}-hint`);
+  return ids.length ? ids.join(' ') : undefined;
+});
 </script>
 
 <style scoped>
+/* MONEVA V2 restyle — same markup/props/emits; tokens only. */
 .form-group {
   margin-bottom: 1.25rem;
 }
@@ -105,13 +115,13 @@ const isFocused = ref(false);
 .form-label {
   display: block;
   margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #1e293b;
+  font-weight: 600;
+  color: var(--color-ink);
   font-size: 0.875rem;
 }
 
 .required-star {
-  color: #ef4444;
+  color: var(--color-expense);
   margin-left: 2px;
 }
 
@@ -127,36 +137,35 @@ const isFocused = ref(false);
   width: 100%;
   height: 44px; /* Hauteur conforme à la charte */
   padding: 0 0.75rem;
-  border: 1px solid #E2E8F0; /* Bordure conforme */
-  border-radius: 0.375rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-moneva);
   font-size: 0.875rem;
-  transition: all 0.2s;
-  background-color: white;
-  color: #1e293b;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
 }
 
 .form-input::placeholder {
-  color: #cbd5e1; /* Gris clair pour placeholder */
+  color: #cbd5e1;
   font-size: 0.875rem;
 }
 
 .form-input:focus {
   outline: none;
-  border-color: #E2E8F0;
-  box-shadow: 0 0 0 2px #93c5fd; /* ring-2 ring-blue-300 */
-  ring: 2px solid #93c5fd;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 
 .form-input.is-invalid {
-  border-color: #ef4444;
+  border-color: var(--color-expense);
 }
 
 .form-input.is-invalid:focus {
-  box-shadow: 0 0 0 2px #fecaca;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-expense) 15%, transparent);
 }
 
 .form-input:disabled {
-  background-color: #f1f5f9;
+  background-color: var(--color-border-soft);
   cursor: not-allowed;
   color: #94a3b8;
 }
@@ -171,7 +180,7 @@ const isFocused = ref(false);
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #1e293b;
+  color: var(--color-ink);
   cursor: pointer;
 }
 
@@ -179,13 +188,13 @@ const isFocused = ref(false);
 .form-error {
   margin-top: 0.375rem;
   font-size: 0.75rem;
-  color: #ef4444;
+  color: var(--color-expense);
 }
 
 /* Hint d'aide */
 .form-hint {
   margin-top: 0.375rem;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--color-text-muted-light);
 }
 </style>
