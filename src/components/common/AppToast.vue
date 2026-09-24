@@ -9,7 +9,7 @@
       <div
         v-if="!toast.modal"
         :class="[
-          'min-w-[320px] max-w-md rounded-lg shadow-lg p-4 pointer-events-auto transform transition-all duration-300',
+          'min-w-[320px] max-w-[28rem] rounded-lg shadow-lg p-4 pointer-events-auto transform transition-all duration-300',
           'flex items-start gap-3 backdrop-blur-sm',
           variantClasses[toast.variant]
         ]"
@@ -35,7 +35,7 @@
     <div class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[70]">
       <div
         :ref="(el) => setModalToastEl(toast.id, el)"
-        class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform transition-all animate-modal"
+        class="bg-white rounded-2xl shadow-xl w-full max-w-[24rem] p-6 transform transition-all animate-modal"
         role="alertdialog"
         aria-modal="true"
         :aria-labelledby="`modal-toast-${toast.domKey}-title`"
