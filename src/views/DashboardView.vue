@@ -241,6 +241,7 @@ const getColor = (name) => {
     'Transport': 'bg-amber-500',
     'Loisirs': 'bg-purple-500',
     'Imprévu': 'bg-red-500',
+    'Beauté & soins': 'bg-pink-500',
   }
   return colors[name] || 'bg-slate-500'
 }

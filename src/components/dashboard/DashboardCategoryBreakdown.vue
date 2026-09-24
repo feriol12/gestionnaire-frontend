@@ -51,7 +51,8 @@ const TONE_CLASSES = {
   positive: 'bg-positive-bg text-positive',
   primary: 'bg-primary/10 text-primary',
   expense: 'bg-expense-bg text-expense',
-  neutral: 'bg-border-soft text-text-muted'
+  neutral: 'bg-border-soft text-text-muted',
+  beauty: 'bg-pink-50 text-pink-600'
 };
 
 const toneClass = (name) => TONE_CLASSES[getExpenseCategory(name).tone];

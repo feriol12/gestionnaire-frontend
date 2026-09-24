@@ -1,16 +1,17 @@
 // src/constants/expenseCategories.js
 // Single source for the expense category enum (MONEVA V2, Phase 5).
 // Values, order and French labels must stay identical to the backend rule
-// `in:Nourriture,Transport,Factures,Loisirs,Imprévu`. `icon`/`tone` are
-// presentation only.
-import { Utensils, Car, FileText, Gamepad2, Asterisk, Tag } from 'lucide-vue-next';
+// (ExpenseController::CATEGORIES: Nourriture, Transport, Factures, Loisirs,
+// Imprévu, Beauté & soins). `icon`/`tone` are presentation only.
+import { Utensils, Car, FileText, Gamepad2, Asterisk, Sparkles, Tag } from 'lucide-vue-next';
 
 export const EXPENSE_CATEGORIES = [
   { value: 'Nourriture', label: 'Nourriture', icon: Utensils, tone: 'positive' },
   { value: 'Transport', label: 'Transport', icon: Car, tone: 'primary' },
   { value: 'Factures', label: 'Factures', icon: FileText, tone: 'primary' },
   { value: 'Loisirs', label: 'Loisirs', icon: Gamepad2, tone: 'primary' },
-  { value: 'Imprévu', label: 'Imprévu', icon: Asterisk, tone: 'expense' }
+  { value: 'Imprévu', label: 'Imprévu', icon: Asterisk, tone: 'expense' },
+  { value: 'Beauté & soins', label: 'Beauté & soins', icon: Sparkles, tone: 'beauty' }
 ];
 
 export const DEFAULT_EXPENSE_CATEGORY = 'Nourriture';
