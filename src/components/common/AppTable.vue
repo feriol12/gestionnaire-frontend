@@ -33,7 +33,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
-          <tr v-for="(row, index) in paginatedData" :key="index" class="hover:bg-slate-50 transition" :class="rowClass">
+          <tr v-for="(row, index) in paginatedData" :key="resolveRowKey(row, index)" class="hover:bg-slate-50 transition" :class="rowClass">
             <td v-for="column in columns" :key="column.key" :class="column.cellClass || 'px-5 py-3'">
               <slot :name="`column-${column.key}`" :row="row" :value="row[column.key]">
                 <span :class="column.valueClass ? column.valueClass(row[column.key]) : ''">
@@ -139,7 +139,10 @@ const props = defineProps({
   hasActions: { type: Boolean, default: false },
   actionsHeaderClass: { type: String, default: 'px-5 py-3 text-center' },
   actionsCellClass: { type: String, default: 'px-5 py-3 text-center whitespace-nowrap' },
-  showPagination: { type: Boolean, default: true }
+  showPagination: { type: Boolean, default: true },
+  // Optional stable row key: a property name (e.g. "id"). Empty keeps the
+  // historical index key for existing callers.
+  rowKey: { type: String, default: '' }
   // Plus de defaultItemsPerPage en prop
 });
 
@@ -185,6 +188,14 @@ const visiblePages = computed(() => {
 });
 
 // ========== MÉTHODES ==========
+// A row missing the requested key falls back to a prefixed index so it can
+// never collide with a real resource key.
+const resolveRowKey = (row, index) => {
+  if (!props.rowKey) return index;
+  const key = row?.[props.rowKey];
+  return key === undefined || key === null ? `__index-${index}` : key;
+};
+
 const formatValue = (value, column) => {
   if (column.format && typeof column.format === 'function') {
     return column.format(value);
