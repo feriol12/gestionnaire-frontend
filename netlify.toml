@@ -6,3 +6,19 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# En-têtes de sécurité navigateur (SEC-AUTH-02B).
+# CSP dérivée des ressources réellement chargées par l'application :
+#  - scripts, styles, images : uniquement le site lui-même ('self') ;
+#  - Google Fonts : feuille de style fonts.googleapis.com, polices fonts.gstatic.com ;
+#  - API : backend Render (appels Axios) ; 'self' pour le polyfill modulepreload de Vite.
+# Pas de 'unsafe-inline' ni de 'unsafe-eval' : les styles dynamiques de Vue passent
+# par le CSSOM. HSTS reste géré par Netlify (non dupliqué ici).
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'self' https://gestionnaire-depense-backend.onrender.com; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), hid=(), midi=(), display-capture=(), magnetometer=(), gyroscope=(), accelerometer=()"
