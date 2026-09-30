@@ -76,7 +76,11 @@ const router = createRouter({
 // // Navigation Guard
 router.beforeEach(async (to, from) => {
     const authStore = useAuthStore();
-    
+
+    // AUTH3-01 : l'état vient de la session serveur, vérifiée une seule fois
+    // (GET /api/user) avant la première décision de navigation.
+    await authStore.initAuth();
+
     // Vérifier si l'utilisateur est authentifié
     const isAuthenticated = authStore.isAuthenticated;
     

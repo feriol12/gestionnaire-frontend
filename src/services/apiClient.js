@@ -4,12 +4,25 @@ import { useAuthStore } from "@/stores/useAuthStore"
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:8000/api",
-  withCredentials: false,
+  // AUTH3-01 : authentification par cookie de session Sanctum (SPA).
+  // Les cookies (session HttpOnly + XSRF-TOKEN) accompagnent chaque requête et
+  // Axios renvoie XSRF-TOKEN dans l'en-tête X-XSRF-TOKEN, y compris vers une
+  // API d'une autre origine (en local : localhost:5173 -> localhost:8000).
+  withCredentials: true,
+  withXSRFToken: true,
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
   },
 })
+
+// La route Sanctum /sanctum/csrf-cookie est à la racine du backend, pas sous
+// /api : on dérive l'origine du backend de l'URL de base de l'API.
+const backendOrigin = new URL(apiClient.defaults.baseURL, window.location.origin).origin
+
+// Obtient le cookie XSRF-TOKEN (et la session) avant login / inscription.
+export const ensureCsrfCookie = () =>
+  apiClient.get("/sanctum/csrf-cookie", { baseURL: backendOrigin })
 
 let isRedirecting = false
 let failedQueue = []   // ← queue requests that arrive during the redirect
@@ -30,17 +43,12 @@ const flushQueue = () => {
 }
 
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token")
-
   // If we're already redirecting, abort ALL new requests immediately
   if (isRedirecting) {
     return Promise.reject({ __silent: true })
   }
 
-  if (token && !config.url.includes('/login') && !config.url.includes('/register')) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-
+  // AUTH3-01 : plus d'en-tête Authorization — la session suffit.
   return config
 })
 
@@ -59,23 +67,28 @@ apiClient.interceptors.response.use(
       })
     }
 
-    const isAuthRoute = ['/login', '/register'].some(
+    // Login / inscription / déconnexion et vérification de session au
+    // démarrage gèrent eux-mêmes leurs erreurs (pas de redirection ici).
+    const isAuthRoute = ['/login', '/register', '/logout'].some(
       (path) => error.config?.url?.includes(path)
     )
-    if (isAuthRoute) {
+    if (isAuthRoute || error.config?.skipAuthRedirect) {
       return Promise.reject(error)
     }
 
-    if (error.response?.status === 401) {
+    // 401 : session absente ou expirée. 419 : jeton CSRF invalide (session
+    // perdue). Dans les deux cas l'identité locale n'est plus valable.
+    const status = error.response?.status
+    if (status === 401 || status === 419) {
+      const authStore = useAuthStore()
+      authStore.clearSession() // pas d'appel API : la session serveur est déjà invalide
+
       const currentPath = router.currentRoute.value.path
       if (currentPath === '/login') {
         return Promise.reject(error)
       }
 
       isRedirecting = true
-
-      const authStore = useAuthStore()
-      await authStore.logout({ skipApiCall: true })
 
       flushQueue() // drain the queue silently
 

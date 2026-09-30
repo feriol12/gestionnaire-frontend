@@ -73,8 +73,8 @@ const userInitial = computed(() =>
 // Identical to Navbar.vue's existing handleLogout: call the existing store
 // action, then navigate to /login. No reimplementation, no new auth state.
 const handleLogout = async () => {
-  await authStore.logout();
-  router.push('/login');
+  // A3-F1 : ne quitter l'espace connecté que si la session serveur est fermée.
+  if (await authStore.logout()) router.push('/login');
 };
 </script>
 

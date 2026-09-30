@@ -28,10 +28,7 @@ const authStore = useAuthStore()
 onMounted(() => {
    console.log('Toast component:', toastComponent.value) // Debug
 
-    // Charge l'utilisateur si un token existe
-  if (authStore.token) {
-    authStore.fetchUser()
-  }
+    // AUTH3-01 : l'utilisateur est chargé par le routeur (authStore.initAuth).
   if (toastComponent.value) {
     registerToast(toastComponent.value)
      console.log('Toast enregistré avec succès ✅')

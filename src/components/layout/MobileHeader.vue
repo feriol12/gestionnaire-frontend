@@ -41,8 +41,8 @@ const authStore = useAuthStore();
 
 // Identical to Navbar.vue's existing handleLogoutMobile call pattern.
 const handleLogout = async () => {
-  await authStore.logout();
-  router.push('/login');
+  // A3-F1 : ne quitter l'espace connecté que si la session serveur est fermée.
+  if (await authStore.logout()) router.push('/login');
 };
 </script>
 

@@ -10,8 +10,10 @@ export function useInactivityTimer(minutes = 1440) {
   const reset = () => {
     clearTimeout(timer)
     timer = setTimeout(async () => {
-      await authStore.logout({ skipApiCall: true })
-      router.push('/login')
+      // AUTH3-01 : fermer aussi la session serveur (sinon elle survivrait côté cookie).
+      // En cas d'échec, on reste connecté (message affiché) : pas de nouvel essai
+      // automatique ; CheckLastActivity reste la protection serveur à 24 h.
+      if (await authStore.logout()) router.push('/login')
     }, minutes * 60 * 1000)
   }
 
