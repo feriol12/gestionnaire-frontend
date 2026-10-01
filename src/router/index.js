@@ -83,9 +83,15 @@ router.beforeEach(async (to, from) => {
 
     // Vérifier si l'utilisateur est authentifié
     const isAuthenticated = authStore.isAuthenticated;
-    
+
     // Si la route nécessite l'auth
     if (to.meta.requiresAuth && !isAuthenticated) {
+        // AUTH3-02 : session invérifiable (serveur indisponible, réseau, 429) :
+        // ce n'est pas une déconnexion, on le dit explicitement. La vérification
+        // sera retentée à la prochaine navigation.
+        if (authStore.authStatus === 'unknown') {
+            authStore.notifyAuthUnavailable();
+        }
         return('/login');
     }
     // Si la route est pour invités et que l'utilisateur est connecté
