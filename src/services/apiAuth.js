@@ -29,6 +29,12 @@ export const authApi = {
     return apiClient.post("/reset-password", payload, { skipAuthRedirect: true })
   },
 
+  // AUTH3-04 : renvoi de l'email de vérification (route publique, CSRF requise,
+  // réponse neutre). Erreurs gérées par la page, comme la récupération.
+  resendVerification(email) {
+    return apiClient.post("/email/verification-notification", { email }, { skipAuthRedirect: true })
+  },
+
   // Vérification de session : un 401 signifie simplement « non connecté »,
   // il ne doit pas déclencher la redirection globale de l'intercepteur.
   getUser() {
