@@ -63,6 +63,11 @@
         </template>
       </AuthField>
 
+      <!-- AUTH3-03 : récupération de mot de passe -->
+      <p class="auth-forgot">
+        <router-link to="/forgot-password" class="auth-forgot-link">Mot de passe oublié ?</router-link>
+      </p>
+
       <div v-if="errorMessage" class="auth-error" role="alert">
         {{ errorMessage }}
       </div>
@@ -218,6 +223,27 @@ const handleLogin = async () => {
   font-size: 12px;
   line-height: 18px;
   color: var(--color-ink);
+}
+
+.auth-forgot {
+  margin-top: -8px;
+  text-align: right;
+  font-size: 12px;
+  line-height: 16px;
+}
+
+.auth-forgot-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  font-weight: 600;
+  color: #2563eb;
+  text-underline-offset: 2px;
+}
+
+.auth-forgot-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }
 
 .auth-cta-wrap {

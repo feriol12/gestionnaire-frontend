@@ -9,7 +9,7 @@ const { error: showError, warning: showWarning } = useToast();
 // AUTH3-02 : message utilisateur selon la réponse réelle du serveur. Seuls les
 // messages de validation (422) du serveur sont repris ; jamais de message brut
 // d'erreur serveur (exception, trace, chemin interne).
-const describeAuthError = (error, flow) => {
+export const describeAuthError = (error, flow) => {
   const status = error?.response?.status;
 
   if (!error?.response) {
@@ -30,9 +30,13 @@ const describeAuthError = (error, flow) => {
   if (status >= 500) {
     return { kind: 'server', message: 'Le serveur rencontre un problème temporaire. Veuillez réessayer dans un instant.' };
   }
+  const fallback = {
+    login: 'Connexion impossible pour le moment.',
+    register: 'Inscription impossible pour le moment.',
+  };
   return {
     kind: 'unexpected',
-    message: flow === 'login' ? 'Connexion impossible pour le moment.' : 'Inscription impossible pour le moment.',
+    message: fallback[flow] ?? 'Opération impossible pour le moment. Veuillez réessayer plus tard.',
   };
 };
 

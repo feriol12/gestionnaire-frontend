@@ -18,6 +18,17 @@ export const authApi = {
     return apiClient.post("/logout")
   },
 
+  // AUTH3-03 : récupération de mot de passe (routes publiques, CSRF requise).
+  // Comme login / inscription, les pages gèrent elles-mêmes leurs erreurs : un
+  // 419 ne doit pas être présenté comme une session expirée (redirection /login).
+  forgotPassword(email) {
+    return apiClient.post("/forgot-password", { email }, { skipAuthRedirect: true })
+  },
+
+  resetPassword(payload) {
+    return apiClient.post("/reset-password", payload, { skipAuthRedirect: true })
+  },
+
   // Vérification de session : un 401 signifie simplement « non connecté »,
   // il ne doit pas déclencher la redirection globale de l'intercepteur.
   getUser() {
