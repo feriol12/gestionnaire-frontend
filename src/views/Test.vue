@@ -29,9 +29,7 @@ onMounted(async () => {
 
         // console.log(response.data)
 
-        const response = await budgetApi.getBudgets(5,2026)
-
-    console.log('DATA BUDGETS :', response.data)
+        await budgetApi.getBudgets(5,2026)
 
     } catch (error) {
 
