@@ -29,6 +29,13 @@ export const authApi = {
     return apiClient.post("/reset-password", payload, { skipAuthRedirect: true })
   },
 
+  // AUTH3-05 : changement de mot de passe du compte connecté (session + CSRF).
+  // Requête authentifiée ordinaire : un 401 (session réellement perdue) suit
+  // le traitement global de l'intercepteur.
+  changePassword(payload) {
+    return apiClient.put("/user/password", payload)
+  },
+
   // AUTH3-04 : renvoi de l'email de vérification (route publique, CSRF requise,
   // réponse neutre). Erreurs gérées par la page, comme la récupération.
   resendVerification(email) {

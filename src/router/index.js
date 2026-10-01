@@ -74,6 +74,12 @@ const router = createRouter({
           name: 'budgets',
           component: () => import('@/views/budgets/BudgetsView.vue'),
         },
+        {
+          // AUTH3-05 : sécurité du compte (changement de mot de passe)
+          path: 'account/security',
+          name: 'account-security',
+          component: () => import('@/views/account/AccountSecurityView.vue'),
+        },
       ]
     },
     // {

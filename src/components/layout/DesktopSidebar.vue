@@ -40,9 +40,20 @@
           <p class="desktop-sidebar-user-email">{{ authStore.user?.email }}</p>
         </div>
       </div>
-      <button type="button" class="desktop-sidebar-logout" @click="handleLogout" aria-label="Déconnexion">
-        <LogOut class="desktop-sidebar-icon" aria-hidden="true" />
-      </button>
+      <div class="desktop-sidebar-user-actions">
+        <!-- AUTH3-05 : sécurité du compte (changement de mot de passe) -->
+        <RouterLink
+          to="/account/security"
+          class="desktop-sidebar-security"
+          aria-label="Sécurité du compte"
+          title="Sécurité du compte"
+        >
+          <KeyRound class="desktop-sidebar-icon" aria-hidden="true" />
+        </RouterLink>
+        <button type="button" class="desktop-sidebar-logout" @click="handleLogout" aria-label="Déconnexion">
+          <LogOut class="desktop-sidebar-icon" aria-hidden="true" />
+        </button>
+      </div>
     </div>
   </aside>
 </template>
@@ -50,7 +61,7 @@
 <script setup>
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { LayoutDashboard, Receipt, Target, LogOut } from 'lucide-vue-next';
+import { LayoutDashboard, Receipt, Target, LogOut, KeyRound } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
 import MonevaMark from '@/components/brand/MonevaMark.vue';
 
@@ -230,6 +241,33 @@ const handleLogout = async () => {
 }
 
 .desktop-sidebar-logout:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.desktop-sidebar-user-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+}
+
+.desktop-sidebar-security {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted-light);
+  border-radius: var(--radius-moneva-sm);
+}
+
+.desktop-sidebar-security:hover {
+  background-color: var(--color-border-soft);
+  color: var(--color-primary);
+}
+
+.desktop-sidebar-security:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
