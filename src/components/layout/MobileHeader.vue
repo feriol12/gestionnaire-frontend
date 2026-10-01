@@ -25,7 +25,7 @@
         class="mobile-header-security"
         aria-label="Sécurité du compte"
       >
-        <KeyRound class="mobile-header-icon" aria-hidden="true" />
+        <Lock class="mobile-header-icon" aria-hidden="true" />
       </RouterLink>
       <button
         type="button"
@@ -41,7 +41,7 @@
 
 <script setup>
 import { RouterLink, useRouter } from 'vue-router';
-import { LogOut, KeyRound } from 'lucide-vue-next';
+import { LogOut, Lock } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
 import MonevaMark from '@/components/brand/MonevaMark.vue';
 

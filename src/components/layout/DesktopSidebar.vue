@@ -48,7 +48,7 @@
           aria-label="Sécurité du compte"
           title="Sécurité du compte"
         >
-          <KeyRound class="desktop-sidebar-icon" aria-hidden="true" />
+          <Lock class="desktop-sidebar-icon" aria-hidden="true" />
         </RouterLink>
         <button type="button" class="desktop-sidebar-logout" @click="handleLogout" aria-label="Déconnexion">
           <LogOut class="desktop-sidebar-icon" aria-hidden="true" />
@@ -61,7 +61,7 @@
 <script setup>
 import { computed } from 'vue';
 import { RouterLink, useRoute, useRouter } from 'vue-router';
-import { LayoutDashboard, Receipt, Target, LogOut, KeyRound } from 'lucide-vue-next';
+import { LayoutDashboard, Receipt, Target, LogOut, Lock } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
 import MonevaMark from '@/components/brand/MonevaMark.vue';
 
