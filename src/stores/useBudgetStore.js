@@ -83,7 +83,6 @@ export const useBudgetStore = defineStore('budget', () => {
       if (isStaleGeneration(generation)) return STALE
 
       summary.value = response.data
-      console.log('SUMMARY API:', response.data)
       return { success: true }
     } catch (err) {
       if (isStaleGeneration(generation)) return STALE

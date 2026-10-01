@@ -119,7 +119,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watchEffect } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useBudgetStore } from '@/stores/useBudgetStore'
 import { useExpenseStore } from '@/stores/useExpenseStore'
 import apiClient from '@/services/apiClient' // ← Import apiClient
@@ -157,12 +157,6 @@ const periodOptions = [
   { value: 'year', label: 'Cette année', icon: '📈' }
 ]
 
-watchEffect(() => {
-  console.log('=== DEBUG DASHBOARD ===')
-  console.log('Budget total:', budgetStore.totalAmount, typeof budgetStore.totalAmount)
-  console.log('Dépenses total:', depenseStore.summary?.this_month, typeof depenseStore.summary?.this_month)
-})
-
 // COMPUTED - Stats principales
 const stats = computed(() => {
   const budget = Number(budgetStore.totalAmount) || 0
@@ -190,9 +184,6 @@ const stats = computed(() => {
       ? 0
       : ((budget - previous) / previous) * 100
 
-    console.log('budget:', budget)
-    console.log('previous:', previous)
-
 
   return {
     budget_total: budget,
@@ -216,9 +207,7 @@ const fetchCategories = async () => {
   try {
     // Utiliser apiClient au lieu de axios direct
     const response = await apiClient.get('/dashboard/categories')
-    
-    console.log('Categories API:', response.data)
-    
+
     categories.value = response.data.data.map(cat => ({
       nom: cat.nom,
       montant: Number(cat.montant),
