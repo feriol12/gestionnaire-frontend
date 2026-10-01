@@ -127,19 +127,25 @@ const loading = ref(false)
 const showPassword = ref(false)
 
 const handleLogin = async () => {
+  // AUTH3-02 : pas de seconde soumission pendant une connexion en cours.
+  if (loading.value) return
+
   errors.value = {}
   errorMessage.value = ''
   loading.value = true
 
-  const result = await authStore.login(form.value)
+  try {
+    const result = await authStore.login(form.value)
 
-  if (result.success) {
-    router.push('/')
-  } else {
-    errorMessage.value = result.message
+    if (result.success) {
+      router.push('/')
+    } else {
+      errors.value = result.errors ?? {}
+      errorMessage.value = result.message
+    }
+  } finally {
+    loading.value = false
   }
-
-  loading.value = false
 }
 </script>
 

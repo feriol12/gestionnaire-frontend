@@ -4,7 +4,41 @@ import { authApi } from '@/services/apiAuth';
 import { useToast } from '@/composables/useToast';
 import router from '@/router';
 
-const { error: showError } = useToast();
+const { error: showError, warning: showWarning } = useToast();
+
+// AUTH3-02 : message utilisateur selon la réponse réelle du serveur. Seuls les
+// messages de validation (422) du serveur sont repris ; jamais de message brut
+// d'erreur serveur (exception, trace, chemin interne).
+const describeAuthError = (error, flow) => {
+  const status = error?.response?.status;
+
+  if (!error?.response) {
+    return { kind: 'network', message: 'Impossible de joindre le serveur. Vérifiez votre connexion internet.' };
+  }
+  if (status === 422) {
+    return { kind: 'validation', message: 'Veuillez corriger les erreurs du formulaire.', errors: error.response.data?.errors ?? {} };
+  }
+  if (status === 401 && flow === 'login') {
+    return { kind: 'credentials', message: 'Email ou mot de passe incorrect.' };
+  }
+  if (status === 419) {
+    return { kind: 'csrf', message: 'La session de sécurité a expiré. Veuillez réessayer.' };
+  }
+  if (status === 429) {
+    return { kind: 'rate_limited', message: 'Trop de tentatives. Veuillez patienter une minute avant de réessayer.' };
+  }
+  if (status >= 500) {
+    return { kind: 'server', message: 'Le serveur rencontre un problème temporaire. Veuillez réessayer dans un instant.' };
+  }
+  return {
+    kind: 'unexpected',
+    message: flow === 'login' ? 'Connexion impossible pour le moment.' : 'Inscription impossible pour le moment.',
+  };
+};
+
+// Délai minimal avant de retenter la vérification de session après un échec
+// temporaire (serveur indisponible, réseau, 429...).
+const INIT_RETRY_COOLDOWN_MS = 3000;
 
 // AUTH3-01 : la session serveur (cookie HttpOnly) est la seule source de vérité.
 // Aucune donnée d'authentification n'est conservée dans le navigateur ; les
@@ -24,10 +58,23 @@ export const useAuthStore = defineStore('auth', () => {
 
   // State
   const user = ref(null);
-  const initialized = ref(false); // session vérifiée au moins une fois auprès du serveur
+  // 'unknown' : session pas encore vérifiée, ou vérification impossible pour
+  // l'instant (erreur temporaire) ; 'authenticated' / 'unauthenticated' :
+  // réponse explicite du serveur (200 / 401).
+  const authStatus = ref('unknown');
   const loading = ref(false);
   const isLoggingOut = ref(false); // Flag pour éviter les appels multiples
   let initPromise = null;
+  let initFailedAt = 0;
+  // AUTH3-02 : époque d'authentification. Elle avance à chaque changement
+  // d'identité (connexion réussie, passage à authentifié / non authentifié).
+  // Chaque requête est marquée de l'époque courante à son envoi : une réponse
+  // émise sous une époque antérieure est périmée et ne doit plus modifier
+  // l'identité (ex. 401 d'une ancienne session arrivant après une reconnexion).
+  let authEpoch = 0;
+  const currentAuthEpoch = () => authEpoch;
+  let loginInFlight = null;
+  let registerInFlight = null;
 
   // Getters
   const isAuthenticated = computed(() => !!user.value);
@@ -35,60 +82,66 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Oublie l'identité locale (session expirée, déconnexion...).
   const clearSession = () => {
+    if (authStatus.value !== 'unauthenticated') authEpoch++;
     user.value = null;
+    authStatus.value = 'unauthenticated';
     purgeLegacyAuthStorage();
   };
 
-  // Actions
-  const register = async (userData) => {
-    loading.value = true;
-
-    try {
-      await authApi.csrfCookie();
-      const response = await authApi.register(userData);
-
-      // Contrat actuel : l'inscription ne connecte pas l'utilisateur.
-      return { success: true, data: response.data };
-    } catch (error) {
-      console.error('Erreur inscription:', error);
-
-      if (error.response?.status === 422) {
-        return {
-          success: false,
-          errors: error.response.data.errors,
-          message: 'Veuillez corriger les erreurs'
-        };
-      }
-
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Erreur lors de l\'inscription'
-      };
-    } finally {
-      loading.value = false;
-    }
+  // Identité confirmée par le serveur. Une connexion ouvre toujours une
+  // nouvelle époque ; une simple confirmation de la même session non.
+  const setAuthenticated = (authenticatedUser, { newLogin = false } = {}) => {
+    if (newLogin || authStatus.value !== 'authenticated') authEpoch++;
+    user.value = authenticatedUser;
+    authStatus.value = 'authenticated';
   };
 
-  const login = async (credentials) => {
-    loading.value = true;
+  // Actions
+  // Un seul appel à la fois : une double soumission réutilise la requête en cours.
+  // Si le cookie CSRF ne peut pas être obtenu, l'inscription n'est pas envoyée.
+  const register = (userData) => {
+    registerInFlight ??= (async () => {
+      loading.value = true;
 
-    try {
-      await authApi.csrfCookie();
-      const response = await authApi.login(credentials);
+      try {
+        await authApi.csrfCookie();
+        const response = await authApi.register(userData);
 
-      // La session est ouverte côté serveur ; seule l'identité est gardée en mémoire.
-      user.value = response.data.user;
-      initialized.value = true;
+        // Contrat actuel : l'inscription ne connecte pas l'utilisateur.
+        return { success: true, data: response.data };
+      } catch (error) {
+        return { success: false, ...describeAuthError(error, 'register') };
+      } finally {
+        loading.value = false;
+        registerInFlight = null;
+      }
+    })();
 
-      return { success: true, data: response.data };
-    } catch (error) {
-      return {
-        success: false,
-        message: error.response?.data?.message || 'Erreur de connexion'
-      };
-    } finally {
-      loading.value = false;
-    }
+    return registerInFlight;
+  };
+
+  const login = (credentials) => {
+    loginInFlight ??= (async () => {
+      loading.value = true;
+
+      try {
+        await authApi.csrfCookie();
+        const response = await authApi.login(credentials);
+
+        // La session est ouverte côté serveur ; seule l'identité est gardée en mémoire.
+        setAuthenticated(response.data.user, { newLogin: true });
+
+        return { success: true, data: response.data };
+      } catch (error) {
+        // Un échec de connexion ne déconnecte personne : l'état reste inchangé.
+        return { success: false, ...describeAuthError(error, 'login') };
+      } finally {
+        loading.value = false;
+        loginInFlight = null;
+      }
+    })();
+
+    return loginInFlight;
   };
 
   // Ferme la session côté serveur. true = plus aucune session authentifiée
@@ -146,34 +199,53 @@ export const useAuthStore = defineStore('auth', () => {
   };
 
   // Demande au serveur qui est connecté (cookie de session).
+  // Retourne 'authenticated', 'unauthenticated' (401 uniquement) ou 'unknown'
+  // (429, 5xx, réseau...) : une panne temporaire n'efface jamais l'identité.
+  // Si l'identité a changé pendant la requête (époque différente), la réponse
+  // est périmée : elle ne modifie rien et l'état courant est renvoyé ('stale').
   const fetchUser = async () => {
-    loading.value = true;
+    const epoch = authEpoch;
 
     try {
       const response = await authApi.getUser();
-      user.value = response.data;
-    } catch {
-      // 401 : pas de session valide
-      clearSession();
-    } finally {
-      loading.value = false;
+      if (epoch !== authEpoch) return 'stale';
+      setAuthenticated(response.data);
+      return 'authenticated';
+    } catch (error) {
+      if (epoch !== authEpoch) return 'stale';
+      if (error?.response?.status === 401) {
+        clearSession();
+        return 'unauthenticated';
+      }
+      return 'unknown';
     }
   };
 
-  // Vérification unique de la session au démarrage (partagée par les gardes du routeur).
+  // Vérification de la session au démarrage, partagée par les gardes du routeur.
+  // Après un échec temporaire, elle peut être retentée (au plus une fois par
+  // période INIT_RETRY_COOLDOWN_MS), jamais en boucle.
   const initAuth = () => {
-    if (!initPromise) {
-      initPromise = fetchUser().finally(() => {
-        initialized.value = true;
+    const retryAllowed = initFailedAt !== 0 && Date.now() - initFailedAt >= INIT_RETRY_COOLDOWN_MS;
+
+    if (!initPromise || retryAllowed) {
+      initFailedAt = 0;
+      initPromise = fetchUser().then((state) => {
+        if (state === 'unknown') initFailedAt = Date.now();
+        return state;
       });
     }
 
     return initPromise;
   };
 
+  // Garde du routeur : session invérifiable pour l'instant (pas une déconnexion).
+  const notifyAuthUnavailable = () => {
+    showWarning('Impossible de vérifier votre session pour le moment. Veuillez réessayer dans un instant.');
+  };
+
   return {
     user,
-    initialized,
+    authStatus,
     loading,
     isAuthenticated,
     userName,
@@ -183,5 +255,7 @@ export const useAuthStore = defineStore('auth', () => {
     fetchUser,
     initAuth,
     clearSession,
+    notifyAuthUnavailable,
+    currentAuthEpoch,
   };
 });

@@ -184,6 +184,9 @@ const errorMessage = ref('');
 const loading = ref(false);
 
 const handleSubmit = async () => {
+  // AUTH3-02 : pas de seconde soumission pendant une inscription en cours.
+  if (loading.value) return;
+
   // Reset errors
   errors.value = {};
   errorMessage.value = '';
@@ -196,30 +199,32 @@ const handleSubmit = async () => {
 
   loading.value = true;
 
-  const result = await authStore.register(form.value);
+  try {
+    const result = await authStore.register(form.value);
 
-   if (result.success) {
-    // Afficher le toast de succès
-    success('Compte créé avec succès !', {
-      title: 'Félicitations 🎉',
-      duration: 5000
-    });
+    if (result.success) {
+      // Afficher le toast de succès
+      success('Compte créé avec succès !', {
+        title: 'Félicitations 🎉',
+        duration: 5000
+      });
 
-    // Rediriger après 2 secondes
-    setTimeout(() => {
-      router.push('/login');
-    }, 2000);
-  } else {
-    if (result.errors) {
-      errors.value = result.errors;
+      // Rediriger après 2 secondes
+      setTimeout(() => {
+        router.push('/login');
+      }, 2000);
     } else {
-      errorMessage.value = result.message;
-      // Afficher un toast d'erreur
-      error(result.message || 'Erreur lors de l\'inscription');
+      if (result.errors) {
+        errors.value = result.errors;
+      } else {
+        errorMessage.value = result.message;
+        // Afficher un toast d'erreur
+        error(result.message || 'Erreur lors de l\'inscription');
+      }
     }
+  } finally {
+    loading.value = false;
   }
-
-  loading.value = false;
 };
 </script>
 
