@@ -22,6 +22,19 @@ const router = createRouter({
       component: LoginVue,
       meta: { guest: true } // accessible seulement si non connecté
     },
+    // AUTH3-03 : récupération de mot de passe
+    {
+      path: '/forgot-password',
+      name: 'forgot-password',
+      component: () => import('@/views/auth/ForgotPasswordVue.vue'),
+      meta: { guest: true }
+    },
+    {
+      // Accessible connecté ou non : le lien reçu par email doit toujours fonctionner.
+      path: '/reset-password',
+      name: 'reset-password',
+      component: () => import('@/views/auth/ResetPasswordVue.vue'),
+    },
     //  Routes protégées (avec navbar)
     {
       path: '/',
