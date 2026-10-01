@@ -18,21 +18,30 @@
       </a>
     </RouterLink>
 
-    <button
-      v-if="authStore.isAuthenticated"
-      type="button"
-      class="mobile-header-logout"
-      @click="handleLogout"
-      aria-label="Déconnexion"
-    >
-      <LogOut class="mobile-header-icon" aria-hidden="true" />
-    </button>
+    <div v-if="authStore.isAuthenticated" class="mobile-header-actions">
+      <!-- AUTH3-05 : sécurité du compte (changement de mot de passe) -->
+      <RouterLink
+        to="/account/security"
+        class="mobile-header-security"
+        aria-label="Sécurité du compte"
+      >
+        <KeyRound class="mobile-header-icon" aria-hidden="true" />
+      </RouterLink>
+      <button
+        type="button"
+        class="mobile-header-logout"
+        @click="handleLogout"
+        aria-label="Déconnexion"
+      >
+        <LogOut class="mobile-header-icon" aria-hidden="true" />
+      </button>
+    </div>
   </header>
 </template>
 
 <script setup>
 import { RouterLink, useRouter } from 'vue-router';
-import { LogOut } from 'lucide-vue-next';
+import { LogOut, KeyRound } from 'lucide-vue-next';
 import { useAuthStore } from '@/stores/useAuthStore';
 import MonevaMark from '@/components/brand/MonevaMark.vue';
 
@@ -102,6 +111,31 @@ const handleLogout = async () => {
 }
 
 .mobile-header-logout:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.mobile-header-actions {
+  display: flex;
+  align-items: center;
+}
+
+.mobile-header-security {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--color-text-muted);
+  border-radius: var(--radius-moneva-sm);
+}
+
+.mobile-header-security:hover {
+  background-color: var(--color-border-soft);
+  color: var(--color-primary);
+}
+
+.mobile-header-security:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
