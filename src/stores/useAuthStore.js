@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { authApi } from '@/services/apiAuth';
 import { useToast } from '@/composables/useToast';
+import { resetPrivateState } from '@/stores/privateState';
 import router from '@/router';
 
 const { error: showError, warning: showWarning } = useToast();
@@ -94,9 +95,17 @@ export const useAuthStore = defineStore('auth', () => {
   // Session existante dont l'adresse n'est pas vérifiée (session antérieure à AUTH3-04).
   const isEmailVerified = computed(() => !!user.value?.email_verified_at);
 
+  // AUTH3-06 : tout changement d'identité ouvre une nouvelle époque ET remet à
+  // zéro l'état privé (stores métier) ; les réponses de l'époque précédente
+  // sont ensuite ignorées par ces stores.
+  const beginNewIdentity = () => {
+    authEpoch++;
+    resetPrivateState();
+  };
+
   // Oublie l'identité locale (session expirée, déconnexion...).
   const clearSession = () => {
-    if (authStatus.value !== 'unauthenticated') authEpoch++;
+    if (authStatus.value !== 'unauthenticated') beginNewIdentity();
     user.value = null;
     authStatus.value = 'unauthenticated';
     purgeLegacyAuthStorage();
@@ -105,7 +114,12 @@ export const useAuthStore = defineStore('auth', () => {
   // Identité confirmée par le serveur. Une connexion ouvre toujours une
   // nouvelle époque ; une simple confirmation de la même session non.
   const setAuthenticated = (authenticatedUser, { newLogin = false } = {}) => {
-    if (newLogin || authStatus.value !== 'authenticated') authEpoch++;
+    if (newLogin || authStatus.value !== 'authenticated') {
+      beginNewIdentity();
+      // Indice d'un invité (adresse saisie avant connexion) : n'appartient pas
+      // à l'identité qui vient de s'ouvrir.
+      pendingVerification.value = null;
+    }
     user.value = authenticatedUser;
     authStatus.value = 'authenticated';
   };
