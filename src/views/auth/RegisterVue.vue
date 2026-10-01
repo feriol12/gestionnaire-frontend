@@ -204,15 +204,13 @@ const handleSubmit = async () => {
 
     if (result.success) {
       // Afficher le toast de succès
-      success('Compte créé avec succès !', {
+      success('Compte créé avec succès ! Vérifiez votre adresse email pour l\'activer.', {
         title: 'Félicitations 🎉',
         duration: 5000
       });
 
-      // Rediriger après 2 secondes
-      setTimeout(() => {
-        router.push('/login');
-      }, 2000);
+      // AUTH3-04 : pas de connexion ; l'adresse doit d'abord être vérifiée.
+      router.push('/verify-email');
     } else {
       if (result.errors) {
         errors.value = result.errors;

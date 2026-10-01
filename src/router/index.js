@@ -35,6 +35,14 @@ const router = createRouter({
       name: 'reset-password',
       component: () => import('@/views/auth/ResetPasswordVue.vue'),
     },
+    {
+      // AUTH3-04 : vérification de l'adresse email. Accessible sans session
+      // (inscription, connexion refusée, lien invalide) ou avec une session non
+      // vérifiée ; pas « guest » pour ne pas boucler avec cette dernière.
+      path: '/verify-email',
+      name: 'verify-email',
+      component: () => import('@/views/auth/VerifyEmailVue.vue'),
+    },
     //  Routes protégées (avec navbar)
     {
       path: '/',
@@ -107,9 +115,15 @@ router.beforeEach(async (to, from) => {
         }
         return('/login');
     }
+    // AUTH3-04 : session ouverte mais adresse non vérifiée (session antérieure à
+    // la vérification obligatoire) : pas d'accès métier, orientation vers la
+    // vérification. Le serveur refuse de toute façon les routes métier (403).
+    else if (to.meta.requiresAuth && !authStore.isEmailVerified) {
+        return('/verify-email');
+    }
     // Si la route est pour invités et que l'utilisateur est connecté
     else if (to.meta.guest && isAuthenticated) {
-        return('/dashboard');
+        return(authStore.isEmailVerified ? '/dashboard' : '/verify-email');
     }
    
 });

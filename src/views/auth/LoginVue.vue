@@ -23,6 +23,11 @@
       </p>
     </div>
 
+    <!-- AUTH3-04 : retour du lien de vérification -->
+    <div v-if="verifiedNotice" class="auth-success auth-notice" role="status">
+      Votre adresse email a été vérifiée. Vous pouvez maintenant vous connecter.
+    </div>
+
     <form class="auth-form" @submit.prevent="handleLogin">
       <AuthField
         id="login-email"
@@ -70,6 +75,9 @@
 
       <div v-if="errorMessage" class="auth-error" role="alert">
         {{ errorMessage }}
+        <router-link v-if="errorKind === 'email_unverified'" to="/verify-email" class="auth-inline-link">
+          Vérifier mon adresse email
+        </router-link>
       </div>
 
       <div class="auth-cta-wrap">
@@ -109,7 +117,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { Eye, EyeOff, AtSign, Lock, ArrowRight, ShieldCheck } from 'lucide-vue-next'
 import AuthShell from '@/components/auth/AuthShell.vue'
@@ -118,8 +126,16 @@ import AuthMobileHero from '@/components/auth/AuthMobileHero.vue'
 import AuthLoginVisual from '@/components/auth/AuthLoginVisual.vue'
 import AppButton from '@/components/common/AppButton.vue'
 
+const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+
+// AUTH3-04 : le lien de vérification renvoie ici (?email_verified=1) ; le
+// paramètre est retiré de l'adresse une fois lu.
+const verifiedNotice = ref(route.query.email_verified === '1')
+if (route.query.email_verified) {
+  router.replace({ path: route.path })
+}
 
 const form = ref({
   email: '',
@@ -128,6 +144,7 @@ const form = ref({
 
 const errors = ref({})
 const errorMessage = ref('')
+const errorKind = ref('')
 const loading = ref(false)
 const showPassword = ref(false)
 
@@ -137,6 +154,7 @@ const handleLogin = async () => {
 
   errors.value = {}
   errorMessage.value = ''
+  errorKind.value = ''
   loading.value = true
 
   try {
@@ -147,6 +165,7 @@ const handleLogin = async () => {
     } else {
       errors.value = result.errors ?? {}
       errorMessage.value = result.message
+      errorKind.value = result.kind
     }
   } finally {
     loading.value = false
@@ -223,6 +242,29 @@ const handleLogin = async () => {
   font-size: 12px;
   line-height: 18px;
   color: var(--color-ink);
+}
+
+/* AUTH3-04 : retour du lien de vérification / adresse non vérifiée */
+.auth-success {
+  padding: 8px 16px;
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  background-color: #ecfdf5;
+  font-size: 12px;
+  line-height: 18px;
+  color: #065f46;
+}
+
+.auth-notice {
+  margin-bottom: 16px;
+}
+
+.auth-inline-link {
+  display: block;
+  margin-top: 4px;
+  font-weight: 700;
+  color: #2563eb;
+  text-decoration: underline;
 }
 
 .auth-forgot {

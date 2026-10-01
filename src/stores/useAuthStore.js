@@ -21,6 +21,10 @@ export const describeAuthError = (error, flow) => {
   if (status === 401 && flow === 'login') {
     return { kind: 'credentials', message: 'Email ou mot de passe incorrect.' };
   }
+  // AUTH3-04 : identifiants corrects mais adresse email non vérifiée.
+  if (status === 403 && error.response.data?.code === 'EMAIL_UNVERIFIED') {
+    return { kind: 'email_unverified', message: 'Votre adresse email doit être vérifiée avant de continuer.' };
+  }
   if (status === 419) {
     return { kind: 'csrf', message: 'La session de sécurité a expiré. Veuillez réessayer.' };
   }
@@ -80,9 +84,15 @@ export const useAuthStore = defineStore('auth', () => {
   let loginInFlight = null;
   let registerInFlight = null;
 
+  // AUTH3-04 : adresse à vérifier transmise à la page /verify-email après une
+  // inscription ou une connexion refusée (en mémoire uniquement, jamais stockée).
+  const pendingVerification = ref(null);
+
   // Getters
   const isAuthenticated = computed(() => !!user.value);
   const userName = computed(() => user.value?.name || '');
+  // Session existante dont l'adresse n'est pas vérifiée (session antérieure à AUTH3-04).
+  const isEmailVerified = computed(() => !!user.value?.email_verified_at);
 
   // Oublie l'identité locale (session expirée, déconnexion...).
   const clearSession = () => {
@@ -112,6 +122,8 @@ export const useAuthStore = defineStore('auth', () => {
         const response = await authApi.register(userData);
 
         // Contrat actuel : l'inscription ne connecte pas l'utilisateur.
+        // AUTH3-04 : l'adresse doit ensuite être vérifiée (lien envoyé par email).
+        pendingVerification.value = { email: userData.email, reason: 'registered' };
         return { success: true, data: response.data };
       } catch (error) {
         return { success: false, ...describeAuthError(error, 'register') };
@@ -138,7 +150,11 @@ export const useAuthStore = defineStore('auth', () => {
         return { success: true, data: response.data };
       } catch (error) {
         // Un échec de connexion ne déconnecte personne : l'état reste inchangé.
-        return { success: false, ...describeAuthError(error, 'login') };
+        const result = describeAuthError(error, 'login');
+        if (result.kind === 'email_unverified') {
+          pendingVerification.value = { email: credentials.email, reason: 'login' };
+        }
+        return { success: false, ...result };
       } finally {
         loading.value = false;
         loginInFlight = null;
@@ -252,6 +268,8 @@ export const useAuthStore = defineStore('auth', () => {
     authStatus,
     loading,
     isAuthenticated,
+    isEmailVerified,
+    pendingVerification,
     userName,
     register,
     login,
