@@ -13,27 +13,28 @@ const router = createRouter({
       path: '/register',
       name: 'register',
       component: RegisterVue,
-      meta: { guest: true } // accessible seulement si non connecté
+      meta: { guest: true, title: 'Créer un compte' } // accessible seulement si non connecté
 
     },
     {
       path: '/login',
       name: 'login',
       component: LoginVue,
-      meta: { guest: true } // accessible seulement si non connecté
+      meta: { guest: true, title: 'Connexion' } // accessible seulement si non connecté
     },
     // AUTH3-03 : récupération de mot de passe
     {
       path: '/forgot-password',
       name: 'forgot-password',
       component: () => import('@/views/auth/ForgotPasswordVue.vue'),
-      meta: { guest: true }
+      meta: { guest: true, title: 'Mot de passe oublié' }
     },
     {
       // Accessible connecté ou non : le lien reçu par email doit toujours fonctionner.
       path: '/reset-password',
       name: 'reset-password',
       component: () => import('@/views/auth/ResetPasswordVue.vue'),
+      meta: { title: 'Nouveau mot de passe', noindex: true }
     },
     {
       // AUTH3-04 : vérification de l'adresse email. Accessible sans session
@@ -42,6 +43,7 @@ const router = createRouter({
       path: '/verify-email',
       name: 'verify-email',
       component: () => import('@/views/auth/VerifyEmailVue.vue'),
+      meta: { title: 'Vérification de l’adresse email', noindex: true }
     },
     //  Routes protégées (avec navbar)
     {
@@ -57,6 +59,7 @@ const router = createRouter({
           path: 'dashboard',
           name: 'dashboard',
           component: DashboardView,
+          meta: { title: 'Tableau de bord' },
         },
          {
           path: 'test',
@@ -68,17 +71,20 @@ const router = createRouter({
           path: 'expenses',
           name: 'expenses',
           component: () => import('@/views/expenses/ExpensesView.vue'),
+          meta: { title: 'Dépenses' },
         },
          {
           path: 'budgets',
           name: 'budgets',
           component: () => import('@/views/budgets/BudgetsView.vue'),
+          meta: { title: 'Budgets' },
         },
         {
           // AUTH3-05 : sécurité du compte (changement de mot de passe)
           path: 'account/security',
           name: 'account-security',
           component: () => import('@/views/account/AccountSecurityView.vue'),
+          meta: { title: 'Sécurité du compte' },
         },
       ]
     },
@@ -91,6 +97,7 @@ const router = createRouter({
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue'),
+      meta: { noindex: true },
     },
 
 
@@ -131,7 +138,30 @@ router.beforeEach(async (to, from) => {
     else if (to.meta.guest && isAuthenticated) {
         return(authStore.isEmailVerified ? '/dashboard' : '/verify-email');
     }
-   
+
+});
+
+// FRONT-RENAME-SEO : titre, indexation et URL canonique de la page affichée.
+// Pages privées (requiresAuth, héritée par les routes enfants) et pages à jeton
+// ou techniques (meta.noindex) : jamais indexées.
+const SITE_NAME = 'FluxMoneva';
+const SITE_URL = 'https://fluxmoneva.com';
+const DEFAULT_TITLE = 'FluxMoneva — Gestion sereine de vos dépenses personnelles';
+
+function setHeadAttribute(selector, attribute, value) {
+    const element = document.head.querySelector(selector);
+    if (element) {
+        element.setAttribute(attribute, value);
+    }
+}
+
+router.afterEach((to) => {
+    const indexable = !to.meta.requiresAuth && !to.meta.noindex;
+
+    document.title = to.meta.title ? `${to.meta.title} · ${SITE_NAME}` : DEFAULT_TITLE;
+    setHeadAttribute('meta[name="robots"]', 'content', indexable ? 'index, follow' : 'noindex, nofollow');
+    setHeadAttribute('link[rel="canonical"]', 'href', SITE_URL + to.path);
+    setHeadAttribute('meta[property="og:url"]', 'content', SITE_URL + to.path);
 });
 
 export default router

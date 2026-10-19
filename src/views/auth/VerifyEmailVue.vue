@@ -73,8 +73,8 @@
     </p>
 
     <template #footer>
-      <span class="auth-desktop-only">© 2026 MONEVA</span>
-      <span class="auth-mobile-only">MONEVA • Gestion sereine de vos dépenses personnelles</span>
+      <span class="auth-desktop-only">© 2026 FluxMoneva</span>
+      <span class="auth-mobile-only">FluxMoneva • Gestion sereine de vos dépenses personnelles</span>
     </template>
   </AuthShell>
 </template>
@@ -114,7 +114,7 @@ const linkError = ref(LINK_ERRORS[linkStatus] ?? (linkStatus ? LINK_ERRORS.inval
 const intro = pending?.reason === 'registered'
   ? "Votre compte a été créé. Nous vous avons envoyé un email contenant un lien d'activation : cliquez dessus, puis connectez-vous."
   : authStore.isAuthenticated
-    ? "Votre adresse email doit être vérifiée pour accéder à MONEVA. Cliquez sur le lien reçu par email, ou demandez-en un nouveau."
+    ? "Votre adresse email doit être vérifiée pour accéder à FluxMoneva. Cliquez sur le lien reçu par email, ou demandez-en un nouveau."
     : "Votre adresse email doit être vérifiée avant de continuer. Cliquez sur le lien reçu par email, ou demandez-en un nouveau."
 
 const email = ref(pending?.email || authStore.user?.email || '')

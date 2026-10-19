@@ -2,7 +2,7 @@
   <div class="account-page">
     <header class="account-header">
       <h1 class="account-title">Sécurité du compte</h1>
-      <p class="account-subtitle">Modifiez le mot de passe de votre compte MONEVA.</p>
+      <p class="account-subtitle">Modifiez le mot de passe de votre compte FluxMoneva.</p>
     </header>
 
     <section class="account-card" aria-labelledby="account-password-heading">

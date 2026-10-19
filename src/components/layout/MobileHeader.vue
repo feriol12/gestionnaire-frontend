@@ -14,7 +14,7 @@
     <RouterLink to="/dashboard" custom v-slot="{ navigate, href }">
       <a :href="href" class="mobile-header-brand" @click="navigate">
         <MonevaMark class="mobile-header-mark" />
-        <span class="brand-title text-base">MONEVA</span>
+        <span class="brand-title text-base">FluxMoneva</span>
       </a>
     </RouterLink>
 

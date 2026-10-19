@@ -109,8 +109,8 @@
     </p>
 
     <template #footer>
-      <span class="auth-desktop-only">© 2026 MONEVA</span>
-      <span class="auth-mobile-only">MONEVA • Gestion sereine de vos dépenses personnelles</span>
+      <span class="auth-desktop-only">© 2026 FluxMoneva</span>
+      <span class="auth-mobile-only">FluxMoneva • Gestion sereine de vos dépenses personnelles</span>
     </template>
   </AuthShell>
 </template>

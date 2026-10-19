@@ -13,7 +13,7 @@
       <RouterLink to="/dashboard" custom v-slot="{ navigate, href }">
         <a :href="href" class="desktop-sidebar-brand-link" @click="navigate">
           <MonevaMark class="desktop-sidebar-mark" />
-          <span class="brand-title text-lg">MONEVA</span>
+          <span class="brand-title text-lg">FluxMoneva</span>
         </a>
       </RouterLink>
     </div>

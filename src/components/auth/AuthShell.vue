@@ -25,7 +25,7 @@
           <span class="auth-brand">
             <MonevaMark class="auth-brand-mark" />
             <span class="auth-brand-text">
-              <span class="auth-brand-name">MONEVA</span>
+              <span class="auth-brand-name">FluxMoneva</span>
               <span class="auth-brand-tagline" aria-hidden="true">Budget &amp; Dépenses</span>
             </span>
           </span>

@@ -139,7 +139,7 @@
         <span>Gestion personnelle</span>
         <span class="alv-trust-item"><ShieldCheck class="alv-trust-icon" aria-hidden="true" /> Devise FCFA native</span>
       </div>
-      <span>© 2026 MONEVA</span>
+      <span>© 2026 FluxMoneva</span>
     </div>
   </section>
 </template>

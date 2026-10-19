@@ -21,7 +21,7 @@
         <ShieldUser class="auth-badge-icon auth-mobile-only" aria-hidden="true" />
         Créer votre espace
       </p>
-      <h1 class="auth-title">Bienvenue chez MONEVA <span aria-hidden="true">👋</span></h1>
+      <h1 class="auth-title">Bienvenue chez FluxMoneva <span aria-hidden="true">👋</span></h1>
       <p class="auth-subtitle auth-desktop-only">
         Quelques informations suffisent pour commencer à mieux suivre vos dépenses et votre budget.
       </p>
@@ -146,8 +146,8 @@
 
     <template #footer>
       <p class="auth-footer-security auth-desktop-only">Espace personnel sécurisé • Gestion en FCFA</p>
-      <p class="auth-footer-tagline auth-mobile-only">MONEVA • Gestion sereine de vos dépenses personnelles</p>
-      <p class="auth-footer-copy">© 2026 MONEVA</p>
+      <p class="auth-footer-tagline auth-mobile-only">FluxMoneva • Gestion sereine de vos dépenses personnelles</p>
+      <p class="auth-footer-copy">© 2026 FluxMoneva</p>
     </template>
   </AuthShell>
 </template>

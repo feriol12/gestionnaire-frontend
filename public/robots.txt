@@ -1,0 +1,11 @@
+# FluxMoneva — pages publiques indexables (accueil, connexion, inscription).
+# Espace privé et pages à jeton : non explorés (et marqués noindex côté application).
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /expenses
+Disallow: /budgets
+Disallow: /account/
+Disallow: /test
+Disallow: /reset-password
+Disallow: /verify-email
