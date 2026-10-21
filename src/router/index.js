@@ -6,9 +6,20 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import MainLayout from '@/components/layout/MainLayout.vue';
 import DashboardView from '@/views/DashboardView.vue'
 import Test from '@/views/Test.vue'
+import LandingView from '@/views/LandingView.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
+    {
+      // SEO-07 : accueil public. Déclaré avant le parent privé de même chemin,
+      // il l'emporte sur « / » ; le parent garde /dashboard, /expenses, etc.
+      // Import direct (pas de chargement différé) : sa feuille de style fait
+      // partie du CSS principal, lié dans le HTML pré-rendu.
+      path: '/',
+      name: 'home',
+      component: LandingView,
+      meta: { public: true },
+    },
     {
       path: '/register',
       name: 'register',
@@ -45,16 +56,13 @@ const router = createRouter({
       component: () => import('@/views/auth/VerifyEmailVue.vue'),
       meta: { title: 'Vérification de l’adresse email', noindex: true }
     },
-    //  Routes protégées (avec navbar)
+    //  Routes protégées (avec navbar). SEO-07 : « / » n'y redirige plus, c'est
+    //  l'accueil public ci-dessus.
     {
       path: '/',
       component: MainLayout,
       meta: { requiresAuth: true },
       children: [
-        {
-          path: '',
-          redirect: { name: 'dashboard' },
-        },
         {
           path: 'dashboard',
           name: 'dashboard',
@@ -109,6 +117,12 @@ const router = createRouter({
 
 // // Navigation Guard
 router.beforeEach(async (to, from) => {
+    // SEO-07 : l'accueil public s'affiche sans attendre ni appeler /api/user
+    // (visiteur, session expirée ou API indisponible).
+    if (to.meta.public) {
+        return true;
+    }
+
     const authStore = useAuthStore();
 
     // AUTH3-01 : l'état vient de la session serveur, vérifiée une seule fois
@@ -146,10 +160,17 @@ router.beforeEach(async (to, from) => {
 // ou techniques (meta.noindex) : jamais indexées.
 const SITE_NAME = 'FluxMoneva';
 const SITE_URL = 'https://fluxmoneva.com';
-const DEFAULT_TITLE = 'FluxMoneva — Gestion sereine de vos dépenses personnelles';
+const DEFAULT_TITLE = 'FluxMoneva — Suivi des dépenses et budgets en FCFA';
 
-function setHeadAttribute(selector, attribute, value) {
-    const element = document.head.querySelector(selector);
+// SEO-07 : la coquille servie hors accueil (app-shell.html) n'a pas de balise
+// canonical / og:url statique ; elles sont créées ici pour la page affichée.
+function setHeadAttribute(selector, attribute, value, create) {
+    let element = document.head.querySelector(selector);
+    if (!element && create) {
+        element = document.createElement(create.tag);
+        Object.entries(create.attrs).forEach(([name, val]) => element.setAttribute(name, val));
+        document.head.appendChild(element);
+    }
     if (element) {
         element.setAttribute(attribute, value);
     }
@@ -160,8 +181,8 @@ router.afterEach((to) => {
 
     document.title = to.meta.title ? `${to.meta.title} · ${SITE_NAME}` : DEFAULT_TITLE;
     setHeadAttribute('meta[name="robots"]', 'content', indexable ? 'index, follow' : 'noindex, nofollow');
-    setHeadAttribute('link[rel="canonical"]', 'href', SITE_URL + to.path);
-    setHeadAttribute('meta[property="og:url"]', 'content', SITE_URL + to.path);
+    setHeadAttribute('link[rel="canonical"]', 'href', SITE_URL + to.path, { tag: 'link', attrs: { rel: 'canonical' } });
+    setHeadAttribute('meta[property="og:url"]', 'content', SITE_URL + to.path, { tag: 'meta', attrs: { property: 'og:url' } });
 });
 
 export default router

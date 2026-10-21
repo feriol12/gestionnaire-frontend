@@ -1,0 +1,46 @@
+# FluxMoneva — frontend SPA sur Apache (LWS). SEO-07.
+# Versionné dans public/ : Vite le copie dans dist/ à chaque build.
+#
+# - « / » sert index.html : l'accueil pré-rendu (texte public dans le HTML).
+# - Les fichiers et dossiers réels sont servis tels quels : assets, robots.txt,
+#   sitemap.xml, favicon, /.well-known/, et le fichier de validation Google déjà
+#   présent sur le serveur (ne jamais le supprimer).
+# - Une ressource statique absente reçoit une vraie 404, jamais la coquille SPA.
+# - Toute autre route de la SPA (/login, /dashboard, ...) sert app-shell.html,
+#   la coquille sans contenu pré-rendu ; Vue Router affiche ensuite la page.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Fichier ou dossier existant : servi tel quel.
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Ressource statique absente : aucune réécriture, donc 404 d'Apache.
+    # (espaces de fichiers statiques, ou dernier segment avec extension :
+    # .js, .css, .png, .woff2, .html, .txt, .xml, ... ; aucune route Vue n'en a)
+    RewriteRule ^(?:assets|\.well-known)(?:/|$) - [L]
+    RewriteRule \.[A-Za-z0-9]{1,8}$ - [L]
+
+    # Route de la SPA : coquille.
+    RewriteRule ^ app-shell.html [L]
+</IfModule>
+
+# Indexation. Les en-têtes sont évalués sur la requête d'origine (THE_REQUEST),
+# qui ne change pas lors de la réécriture interne vers app-shell.html.
+<IfModule mod_headers.c>
+    # Routes privées et à jeton : noindex quelle que soit la casse (Vue Router
+    # n'y est pas sensible : /Dashboard, /ACCOUNT/SECURITY...). Segment exact :
+    # /dashboard, /dashboard/, /dashboard?x... mais pas /dashboardx.
+    <If "%{THE_REQUEST} =~ m#^\S+\s+/(?:dashboard|expenses|budgets|account|test|about|reset-password|verify-email|app-shell\.html)(?:[/?]|\s)#i">
+        Header always set X-Robots-Tag "noindex, nofollow"
+    </If>
+
+    # Coquille SPA : noindex par défaut (routes inconnues, chemins encodés, ...)
+    # sauf pour les pages publiques exactes /login, /register, /forgot-password.
+    <If "%{REQUEST_URI} == '/app-shell.html' && %{THE_REQUEST} !~ m#^\S+\s+/(?:login|register|forgot-password)/?(?:\?\S*)?\s#">
+        Header always set X-Robots-Tag "noindex, nofollow"
+    </If>
+</IfModule>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- FluxMoneva : pages publiques indexables uniquement (aucune page privée ni URL à jeton). -->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://fluxmoneva.com/</loc>
+  </url>
+  <url>
+    <loc>https://fluxmoneva.com/register</loc>
+  </url>
+  <url>
+    <loc>https://fluxmoneva.com/login</loc>
+  </url>
+</urlset>

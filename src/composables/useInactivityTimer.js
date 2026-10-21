@@ -10,6 +10,8 @@ export function useInactivityTimer(minutes = 1440) {
   const reset = () => {
     clearTimeout(timer)
     timer = setTimeout(async () => {
+      // SEO-07 : un visiteur sans session (accueil public) n'est pas « déconnecté ».
+      if (!authStore.isAuthenticated) return
       // AUTH3-01 : fermer aussi la session serveur (sinon elle survivrait côté cookie).
       // En cas d'échec, on reste connecté (message affiché) : pas de nouvel essai
       // automatique ; CheckLastActivity reste la protection serveur à 24 h.
