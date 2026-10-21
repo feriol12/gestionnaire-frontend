@@ -161,7 +161,8 @@ const handleLogin = async () => {
     const result = await authStore.login(form.value)
 
     if (result.success) {
-      router.push('/')
+      // SEO-07 : « / » est l'accueil public ; l'espace connecté commence au tableau de bord.
+      router.push('/dashboard')
     } else {
       errors.value = result.errors ?? {}
       errorMessage.value = result.message
