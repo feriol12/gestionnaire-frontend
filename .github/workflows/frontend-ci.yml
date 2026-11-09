@@ -1,0 +1,37 @@
+
+name: Frontend Vue CI
+
+on:
+  pull_request:
+    branches:
+      - integration/security-auth-v3
+      - main
+  push:
+    branches:
+      - integration/security-auth-v3
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  frontend-build:
+    name: Vue Build (Node.js 22)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    steps:
+      - name: Recuperer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Installer les dependances
+        run: npm ci
+
+      - name: Compiler le Frontend
+        run: npm run build
