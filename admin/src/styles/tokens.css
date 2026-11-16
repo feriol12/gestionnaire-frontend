@@ -1,0 +1,104 @@
+/*
+ * FE-01 — Design tokens Admin « Royal Blue / Slate ».
+ * Source : FE01-PASSATION/stitch/DESIGN.md (palette décrite en prose, retenue
+ * en décision D1 ; les tokens Material 3 du front-matter ne sont pas utilisés).
+ * Préfixe --fm- : aucune collision avec les variables du client.
+ *
+ * Écarts volontaires pour l'accessibilité AA (documentés dans le handover) :
+ * - texte « danger » en #B91C1C au lieu de #EF4444 (3,8:1 sur fond rose) ;
+ * - focus = contour plein 2px + halo, au lieu du seul halo à 25 % d'opacité.
+ */
+:root {
+  /* Couleurs de base */
+  --fm-primary: #2563eb;
+  --fm-primary-hover: #1d4ed8;
+  --fm-primary-text: #1d4ed8;
+  --fm-primary-soft: rgba(37, 99, 235, 0.1);
+  --fm-primary-soft-border: rgba(37, 99, 235, 0.2);
+  --fm-on-primary: #ffffff;
+
+  --fm-heading: #0f172a;
+  --fm-text: #334155;
+  --fm-text-muted: #64748b;
+  --fm-placeholder: #94a3b8;
+
+  --fm-canvas: #f8fafc;
+  --fm-surface: #ffffff;
+  --fm-surface-hover: #f8fafc;
+  --fm-border: #e2e8f0;
+  --fm-border-subtle: #f1f5f9;
+
+  --fm-banner-bg: #0f172a;
+  --fm-banner-text: #f8fafc;
+
+  /* Sémantique : avant-plan saturé + fond teinté 10 % */
+  --fm-success: #10b981;
+  --fm-success-text: #047857;
+  --fm-success-soft: rgba(16, 185, 129, 0.1);
+  --fm-success-border: rgba(16, 185, 129, 0.2);
+
+  --fm-warning: #f59e0b;
+  --fm-warning-text: #b45309;
+  --fm-warning-soft: rgba(245, 158, 11, 0.1);
+  --fm-warning-border: rgba(245, 158, 11, 0.2);
+
+  --fm-danger: #ef4444;
+  --fm-danger-text: #b91c1c;
+  --fm-danger-soft: rgba(239, 68, 68, 0.1);
+  --fm-danger-border: rgba(239, 68, 68, 0.2);
+  --fm-danger-button-bg: #fef2f2;
+  --fm-danger-button-hover: #fee2e2;
+  --fm-danger-button-border: #fca5a5;
+
+  --fm-neutral-text: #475569;
+  --fm-neutral-soft: #f1f5f9;
+  --fm-neutral-border: #e2e8f0;
+
+  /* Focus */
+  --fm-focus-outline: 2px solid var(--fm-primary);
+  --fm-focus-ring: 0 0 0 4px rgba(37, 99, 235, 0.25);
+
+  /* Typographie */
+  /* Pile système, sans aucun téléchargement de police (aucune requête réseau,
+     aucune origine tierce à autoriser dans une CSP). Plus Jakarta Sans n'est
+     plus chargée : l'auto-héberger exigerait des fichiers de police versionnés
+     (décision à prendre hors FE-01). */
+  --fm-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --fm-font-mono: ui-monospace, 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+  --fm-display-lg: 700 2rem/2.5rem var(--fm-font);
+  --fm-headline-lg: 600 1.5rem/2rem var(--fm-font);
+  --fm-headline-md: 600 1.25rem/1.75rem var(--fm-font);
+  --fm-headline-sm: 600 1rem/1.5rem var(--fm-font);
+  --fm-body-lg: 400 1rem/1.5rem var(--fm-font);
+  --fm-body-md: 400 0.875rem/1.25rem var(--fm-font);
+  --fm-body-sm: 400 0.8125rem/1.125rem var(--fm-font);
+  --fm-label-md: 600 0.75rem/1rem var(--fm-font);
+  --fm-label-sm: 600 0.6875rem/0.875rem var(--fm-font);
+
+  /* Formes */
+  --fm-radius-sm: 0.25rem;
+  --fm-radius-control: 0.5rem;
+  --fm-radius-card: 0.75rem;
+  --fm-radius-lg: 1rem;
+  --fm-radius-pill: 9999px;
+
+  /* Élévation */
+  --fm-shadow-1: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --fm-shadow-2: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --fm-shadow-3: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04);
+
+  /* Espacements (pas de 8px, micro-pas 4px) */
+  --fm-space-xs: 0.25rem;
+  --fm-space-sm: 0.5rem;
+  --fm-space-md: 1rem;
+  --fm-space-lg: 1.5rem;
+  --fm-space-xl: 2rem;
+  --fm-gutter: 1.5rem;
+  --fm-margin: 2rem;
+  --fm-margin-mobile: 1rem;
+
+  /* Gabarit */
+  --fm-sidebar-width: 260px;
+  --fm-control-height: 40px;
+}

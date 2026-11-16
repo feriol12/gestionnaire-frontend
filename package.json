@@ -7,7 +7,13 @@
     "dev": "vite",
     "build": "vite build && node scripts/prerender-landing.mjs",
     "preview": "vite preview",
-    "format": "prettier --write --experimental-cli src/"
+    "format": "prettier --write --experimental-cli src/",
+    "dev:admin": "vite --config vite.admin.config.js",
+    "build:admin": "vite build --config vite.admin.config.js",
+    "preview:admin": "vite preview --config vite.admin.config.js",
+    "test:admin": "vitest run --config vite.admin.config.js && npm run test:admin:isolation",
+    "test:admin:isolation": "node --test admin/tests/isolation/client-isolation.test.mjs",
+    "test:admin:e2e": "npm run build:admin && playwright test --config admin/tests/e2e/playwright.config.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.2.2",
@@ -20,10 +26,15 @@
     "vue-router": "^5.0.4"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.65.1",
     "@vitejs/plugin-vue": "^6.0.5",
+    "@vue/test-utils": "^2.5.1",
+    "jsdom": "^31.0.1",
     "prettier": "3.8.1",
     "vite": "^8.0.3",
-    "vite-plugin-vue-devtools": "^8.1.1"
+    "vite-plugin-vue-devtools": "^8.1.1",
+    "vitest": "^5.1.0"
   },
   "engines": {
     "node": "^20.19.0 || >=22.12.0"
