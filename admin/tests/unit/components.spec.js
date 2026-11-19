@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { mount, RouterLinkStub } from '@vue/test-utils'
+import { flushPromises, mount, RouterLinkStub } from '@vue/test-utils'
+import { createMemoryHistory, createRouter } from 'vue-router'
 import AdminButton from '@admin/components/AdminButton.vue'
 import AdminIcon from '@admin/components/AdminIcon.vue'
 import AuditActivity from '@admin/components/AuditActivity.vue'
@@ -46,6 +47,97 @@ describe('AdminButton', () => {
     expect(wrapper.findComponent(RouterLinkStub).props('to')).toEqual({ name: 'dashboard' })
     expect(wrapper.find('button').exists()).toBe(false)
   })
+
+  it('RouterLink actif : conserve href, attributs et clic modifié sans navigation SPA', async () => {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: ['/', '/destination'].map(path => ({ path, component: { template: '<p>Page</p>' } })),
+    })
+    await router.push('/')
+    await router.isReady()
+    const wrapper = mount(AdminButton, {
+      props: { to: '/destination' },
+      attrs: { target: '_blank', rel: 'noopener', 'aria-label': 'Autre onglet' },
+      global: { plugins: [router] },
+    })
+    const link = wrapper.get('a')
+    const event = new MouseEvent('click', { bubbles: true, cancelable: true, ctrlKey: true })
+    link.element.dispatchEvent(event)
+    await flushPromises()
+    expect(event.defaultPrevented).toBe(false)
+    expect(router.currentRoute.value.path).toBe('/')
+    expect(wrapper.emitted('click')).toHaveLength(1)
+    expect(link.attributes('href')).toBe('/destination')
+    expect(link.attributes('target')).toBe('_blank')
+    expect(link.attributes('rel')).toBe('noopener')
+    expect(link.attributes('aria-label')).toBe('Autre onglet')
+    wrapper.unmount()
+  })
+
+  for (const state of [{ disabled: true }, { loading: true }, { disabled: true, loading: true }]) {
+    it(`button ${JSON.stringify(state)} : aucun click ni soumission, puis réactivation`, async () => {
+      const wrapper = mount(AdminButton, { props: { type: 'submit', ...state } })
+      const event = new MouseEvent('click', { bubbles: true, cancelable: true })
+      wrapper.get('button').element.dispatchEvent(event)
+      expect(event.defaultPrevented).toBe(true)
+      expect(wrapper.emitted('click')).toBeUndefined()
+      expect(wrapper.attributes('aria-disabled')).toBe('true')
+      expect(wrapper.attributes('aria-busy')).toBe(state.loading ? 'true' : undefined)
+      await wrapper.setProps({ disabled: false, loading: false })
+      await wrapper.trigger('click')
+      expect(wrapper.emitted('click')).toHaveLength(1)
+      expect(wrapper.attributes('type')).toBe('submit')
+      wrapper.unmount()
+    })
+
+    it(`RouterLink ${JSON.stringify(state)} : aucune navigation réelle ni émission`, async () => {
+      const router = createRouter({
+        history: createMemoryHistory(),
+        routes: ['/', '/destination'].map(path => ({ path, component: { template: '<p>Page</p>' } })),
+      })
+      await router.push('/')
+      await router.isReady()
+      const wrapper = mount(AdminButton, {
+        attachTo: document.body,
+        props: { to: '/destination' },
+        global: { plugins: [router] },
+        slots: { default: 'Destination' },
+      })
+      const link = wrapper.get('a')
+      link.element.focus()
+      await wrapper.setProps(state)
+      expect(document.activeElement).toBe(link.element)
+      expect(link.attributes('href')).toBeUndefined()
+      expect(link.attributes('role')).toBe('link')
+      expect(link.attributes('tabindex')).toBe(state.disabled ? '-1' : '0')
+      expect(link.attributes('aria-disabled')).toBe('true')
+      expect(link.attributes('aria-busy')).toBe(state.loading ? 'true' : undefined)
+      for (const init of [{}, { ctrlKey: true }, { metaKey: true }, { shiftKey: true }]) {
+        const event = new MouseEvent('click', { bubbles: true, cancelable: true, ...init })
+        link.element.dispatchEvent(event)
+        expect(event.defaultPrevented).toBe(true)
+      }
+      const middleClick = new MouseEvent('auxclick', { button: 1, bubbles: true, cancelable: true })
+      link.element.dispatchEvent(middleClick)
+      expect(middleClick.defaultPrevented).toBe(true)
+      await flushPromises()
+      expect(router.currentRoute.value.path).toBe('/')
+      expect(wrapper.emitted('click')).toBeUndefined()
+
+      await wrapper.setProps({ disabled: false, loading: false })
+      expect(link.attributes('href')).toBe('/destination')
+      expect(link.attributes('aria-disabled')).toBeUndefined()
+      expect(link.attributes('aria-busy')).toBeUndefined()
+      expect(link.attributes('tabindex')).toBeUndefined()
+      await link.trigger('click')
+      await flushPromises()
+      expect(router.currentRoute.value.path).toBe('/destination')
+      expect(wrapper.emitted('click')).toHaveLength(1)
+      expect(link.attributes('aria-current')).toBe('page')
+      expect(link.classes()).toContain('router-link-exact-active')
+      wrapper.unmount()
+    })
+  }
 })
 
 describe('StatusBadge', () => {
