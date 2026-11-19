@@ -48,6 +48,16 @@ test.afterEach(async ({ page, context }) => {
   expect(await context.cookies()).toEqual([])
 })
 
+async function attachAxeEvidence(page, results) {
+  await test.info().attach('axe-results', {
+    body: JSON.stringify({
+      url: page.url(), viewport: page.viewportSize(), engine: results.testEngine,
+      tags: axeTags, passes: results.passes.length, violations: results.violations,
+    }, null, 2),
+    contentType: 'application/json',
+  })
+}
+
 async function settle(page) {
   await page.waitForLoadState('networkidle')
   await page.evaluate(() => document.fonts.ready)
@@ -79,6 +89,7 @@ for (const width of widths) {
         }
 
         const results = await new AxeBuilder({ page }).withTags(axeTags).analyze()
+        await attachAxeEvidence(page, results)
         expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' | ')}`)).toEqual([])
 
         await page.screenshot({ path: `${capturesDir}${width}-${screen.name}.png`, fullPage: true })
@@ -227,6 +238,7 @@ test.describe('Navigation mobile (390px)', () => {
     expect(focusInside).toBe(true)
 
     const results = await new AxeBuilder({ page }).withTags(axeTags).analyze()
+    await attachAxeEvidence(page, results)
     expect(results.violations.map((v) => v.id)).toEqual([])
     await page.screenshot({ path: `${capturesDir}390-tiroir-navigation.png` })
 
@@ -290,5 +302,84 @@ test.describe('Navigation mobile (390px)', () => {
     await settle(page)
     await expect(page.locator('.audit-activity__cards')).toBeVisible()
     await expect(page.locator('.audit-activity__table-wrap')).toBeHidden()
+  })
+})
+
+test.describe('AdminButton : régression disabled/loading', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  for (const name of ['Lien désactivé', 'Lien en chargement']) {
+    test(`${name} : souris, clavier et clic modifié sans navigation`, async ({ page, context }) => {
+      await page.goto('/composants')
+      const link = page.getByRole('link', { name, exact: true })
+      await expect(link).toHaveAttribute('aria-disabled', 'true')
+      await expect(link).not.toHaveAttribute('href')
+      await link.scrollIntoViewIfNeeded()
+      let box = await link.boundingBox()
+      // Vraie souris : Playwright locator.click refuserait un aria-disabled.
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+      await link.focus()
+      await page.keyboard.press('Enter')
+      await page.keyboard.press('Space')
+      await expect(link).toBeFocused()
+      // Espace peut faire défiler la page, comme pour tout lien natif.
+      // Recalculer la position avant les clics suivants.
+      await link.scrollIntoViewIfNeeded()
+      box = await link.boundingBox()
+      await page.keyboard.down('Control')
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2)
+      await page.keyboard.up('Control')
+      await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: 'middle' })
+      await expect(page).toHaveURL(/\/composants$/)
+      expect(context.pages()).toHaveLength(1)
+    })
+  }
+
+  test('tabulation : lien désactivé ignoré, chargement focalisable', async ({ page }) => {
+    await page.goto('/composants')
+    await page.getByRole('link', { name: 'Voir les états', exact: true }).focus()
+    await page.keyboard.press('Tab')
+    const loading = page.getByRole('link', { name: 'Lien en chargement', exact: true })
+    await expect(loading).toBeFocused()
+    await expect(loading).toHaveAttribute('aria-busy', 'true')
+    await expect(page.getByRole('link', { name: 'Lien désactivé', exact: true })).toHaveAttribute('tabindex', '-1')
+  })
+
+  for (const activation of ['souris', 'clavier']) {
+    test(`lien actif : navigation réelle (${activation})`, async ({ page }) => {
+      await page.goto('/composants')
+      const link = page.getByRole('link', { name: 'Voir les états', exact: true })
+      await expect(link).toHaveAttribute('href', '/etats')
+      if (activation === 'souris') await link.click()
+      else {
+        await link.focus()
+        await page.keyboard.press('Enter')
+      }
+      await expect(page).toHaveURL(/\/etats$/)
+      await expect(page.locator('#admin-page-title')).toBeFocused()
+    })
+  }
+
+  test('button : disabled natif et loading gardent leur comportement clavier', async ({ page }) => {
+    await page.clock.install()
+    await page.goto('/composants')
+    const disabled = page.getByRole('button', { name: 'Désactivé', exact: true })
+    await expect(disabled).toBeDisabled()
+    await page.getByRole('button', { name: 'Paramètres', exact: true }).focus()
+    await page.keyboard.press('Tab')
+    const button = page.getByRole('button', { name: 'Tester le chargement', exact: true })
+    await expect(button).toBeFocused()
+    await page.keyboard.press('Space')
+    const loading = page.getByRole('button', { name: 'Chargement simulé…', exact: true })
+    await expect(loading).toBeFocused()
+    await expect(loading).toHaveAttribute('aria-busy', 'true')
+    await expect(loading).not.toHaveAttribute('disabled')
+    await page.keyboard.press('Enter')
+    await page.keyboard.press('Space')
+    await page.clock.fastForward(1200)
+    await expect(button).toBeFocused()
+    await expect(button).not.toHaveAttribute('aria-disabled')
+    await page.keyboard.press('Enter')
+    await expect(loading).toHaveAttribute('aria-busy', 'true')
   })
 })

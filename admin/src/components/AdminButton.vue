@@ -24,8 +24,21 @@ const emit = defineEmits(['click'])
 
 // En chargement, le bouton reste focalisable (aria-disabled) pour ne pas perdre
 // le focus clavier ; les clics sont ignorés jusqu'à la fin du chargement.
+const blocked = computed(() => props.disabled || props.loading)
+
+// Capture avant le gestionnaire interne de RouterLink. Sans href, le lien
+// inactif ne peut pas non plus être ouvert dans un autre onglet.
+function guardInteraction(event) {
+  if (!blocked.value) return
+  event.preventDefault()
+  event.stopImmediatePropagation()
+}
+
 function onClick(event) {
-  if (props.loading) return
+  if (blocked.value) {
+    guardInteraction(event)
+    return
+  }
   emit('click', event)
 }
 
@@ -37,7 +50,19 @@ const classes = computed(() => [
 </script>
 
 <template>
-  <RouterLink v-if="to" :to="to" :class="classes" @click="emit('click', $event)">
+  <RouterLink
+    v-if="to"
+    :to="to"
+    :class="classes"
+    v-bind="blocked ? { href: undefined } : {}"
+    :role="blocked ? 'link' : undefined"
+    :tabindex="disabled ? -1 : loading ? 0 : undefined"
+    :aria-disabled="blocked ? 'true' : undefined"
+    :aria-busy="loading ? 'true' : undefined"
+    @click.capture="guardInteraction"
+    @auxclick.capture="guardInteraction"
+    @click="onClick"
+  >
     <AdminIcon v-if="icon" :name="icon" :size="16" />
     <span><slot /></span>
     <AdminIcon v-if="iconRight" :name="iconRight" :size="16" />
@@ -47,7 +72,7 @@ const classes = computed(() => [
     :type="type"
     :class="classes"
     :disabled="disabled"
-    :aria-disabled="loading ? 'true' : undefined"
+    :aria-disabled="blocked ? 'true' : undefined"
     :aria-busy="loading ? 'true' : undefined"
     @click="onClick"
   >
@@ -86,7 +111,7 @@ const classes = computed(() => [
   color: var(--fm-on-primary);
 }
 
-.admin-button--primary:hover:not(:disabled) {
+.admin-button--primary:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--fm-primary-hover);
 }
 
@@ -96,7 +121,7 @@ const classes = computed(() => [
   color: var(--fm-heading);
 }
 
-.admin-button--secondary:hover:not(:disabled) {
+.admin-button--secondary:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--fm-surface-hover);
 }
 
@@ -106,7 +131,7 @@ const classes = computed(() => [
   color: var(--fm-danger-text);
 }
 
-.admin-button--danger:hover:not(:disabled) {
+.admin-button--danger:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--fm-danger-button-hover);
 }
 
@@ -115,11 +140,12 @@ const classes = computed(() => [
   color: var(--fm-primary-text);
 }
 
-.admin-button--ghost:hover:not(:disabled) {
+.admin-button--ghost:hover:not(:disabled):not([aria-disabled="true"]) {
   background: var(--fm-primary-soft-border);
 }
 
-.admin-button:disabled {
+.admin-button:disabled,
+.admin-button[aria-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.6;
 }

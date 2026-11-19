@@ -1,27 +1,26 @@
 # Passation FE-01 → FE-02 — FluxMoneva Admin V1
 
-**Mission livrée :** FE-01, socle Admin Vue 3 autonome (phase 1, GO CODE local), puis corrections après auto-revue.
-**Statut :** commits **locaux** uniquement. Pas de push, de PR, de merge ni de déploiement. En attente de la revue humaine indépendante.
+**Mission livrée :** FE-01, socle Admin Vue 3 autonome, intégré par la PR #23 ; finalisation ciblée du 19/11/2026.
+**Statut :** [PR #23](https://github.com/feriol12/gestionnaire-frontend/pull/23) **fusionnée** le 16/11/2026 dans `integration/security-auth-v3`. Corrections de finalisation sur branche locale dédiée, sans publication. La revue du correctif et la validation propriétaire restent requises ; aucun déploiement attesté.
 
 | Rôle | Personne |
 |---|---|
 | Responsable humain FE-01 | feriol12 |
-| Développeur IA | Claude Code |
+| Agents de développement | Claude Code (socle historique), Codex (finalisation) |
 | Reviewer humain indépendant | Dimas Othentique |
-| Titulaire FE-02 | à désigner (aucun membre affecté au 13/11/2026) |
+| Titulaire FE-02 | Dimas Othentique (`othentiquedimas-code`), dans son worktree distinct |
 
 ## 1. Références Git
 
 - Dépôt : `feriol12/gestionnaire-frontend`
-- Base : `origin/integration/security-auth-v3` = `7171f83f5d830df548a2bed8cfca19774ff2a9ec` (vérifiée par `ls-remote` puis fetch le 14/11/2026)
-- Branche locale : `feature/fm-admin-fe-01-shell`, dans un worktree isolé dédié à FE-01 (aucun checkout partagé)
-- Commits FE-01 :
-  - `12c115b` feat(admin): add isolated FE-01 admin shell and demo dashboard
-  - `3fec7e9` test(admin): add unit, accessibility and responsive checks
-  - `32d9d1d` docs(admin): add FE-01 to FE-02 handover
-  - corrections après auto-revue : voir `git log --oneline 32d9d1d..feature/fm-admin-fe-01-shell` (correctifs Admin, garde-fou d'isolation, mise à jour de ce document)
+- Branche commune : `origin/integration/security-auth-v3`, vérifiée après fetch le 19/11/2026 à `6d202f21d292f69b98edebf73b773662d043a9ef` (merge PR #23).
+- Commit FE-01 publié et fusionné : `930f11c1382edd3146dcb6bab967dff0a9e7644c` ; branche source `feature/fm-admin-fe-01-publication`.
+- Branche locale de finalisation : `fix/fm-admin-fe-01-qa`, créée depuis le merge ci-dessus, dans un worktree isolé. Aucun push, PR, merge ou déploiement autorisé pour ce correctif.
+- Base historique **avant FE-01**, utilisée pour les comparaisons build et audit : `7171f83f5d830df548a2bed8cfca19774ff2a9ec`.
 
-FE-02 crée **sa propre branche** `feature/fm-admin-fe-02-mfa-mocks` depuis l'intégration **après** fusion autorisée de FE-01. En cas de travail parallèle : clone ou worktree séparé, aucun checkout partagé, rebase explicite ensuite.
+**Historique uniquement :** `feature/fm-admin-fe-01-shell` et ses commits de développement (`12c115b`, `3fec7e9`, `32d9d1d`, jusqu'à `94fc032`) précèdent la consolidation publiée `930f11c`. Ils ne constituent pas une base d'équipe à récupérer ou à fusionner.
+
+FE-02 est attribuée à Dimas et se poursuit dans **son propre worktree**. Partir de l'intégration fraîchement récupérée, vérifier le SHA, puis intégrer les correctifs FE-01 uniquement après leur publication et leur fusion autorisées. Ne pas basculer ni modifier le checkout de Dimas.
 
 ## 2. Lancement local
 
@@ -32,7 +31,7 @@ FE-02 crée **sa propre branche** `feature/fm-admin-fe-02-mfa-mocks` depuis l'in
 | Client et Admin : `dev`, `build`, `preview` (`*:admin` compris) | `^20.19.0 \|\| >=22.12.0` | Vite 8, `@vitejs/plugin-vue` 6 |
 | Tests Admin : `test:admin`, `test:admin:e2e` | **`^22.22.2 \|\| ^24.15.0 \|\| >=26.0.0`** | jsdom 31 (le plus strict), Vitest 5 (`^22.12 \|\| ^24 \|\| >=26`), `@axe-core/playwright` (`>=22.12`) |
 
-**Node 20 ne permet pas de lancer les tests Admin.** Le champ `engines` de `package.json` (`^20.19.0 || >=22.12.0`) décrit le client. Il n'a pas été modifié, car il est hors de l'allowlist FE-01. npm se contente d'avertir. Versions vérifiées : Node 24.19 et npm 11.17. La CI existante (Node 22, dernière mineure) ne lance pas les tests Admin.
+**Node 20 ne permet pas de lancer les tests Admin.** Le champ `engines` de `package.json` (`^20.19.0 || >=22.12.0`) décrit le client. Il n'a pas été modifié, car il est hors de l'allowlist FE-01. npm se contente d'avertir. **Minimum officiellement compatible pour les tests : Node 22.22.2 sur la branche 22, ou 24.15.0 sur la branche 24** (contraintes `engines` des dépendances verrouillées). Node 24.12.0 est hors de cette plage : une exécution réussie ne constitue pas une compatibilité supportée. Environnement de référence exécuté pour la finalisation : **Node 24.19.0 et npm 11.17.0**. Les autres versions admissibles ne sont pas une matrice de tests exécutée. La CI existante (Node 22, dernière mineure) ne lance pas les tests Admin.
 
 ### Commandes
 
@@ -69,7 +68,7 @@ admin/tests/e2e/               Playwright + axe (playwright.config.js)
 
 **Non modifiés :** `src/**`, `public/**` (dont `.htaccess`), `index.html`, `vite.config.js`, `scripts/` (pré-rendu), `netlify.toml`, `.env*`, `.gitignore`, `.github/` (CI), backend.
 
-Seuls `package.json` (7 scripts `*:admin`, 5 devDependencies) et `package-lock.json` sont partagés. Aucune dépendance de production n'a été ajoutée. Trois paquets transitifs communs ont reçu une montée de version compatible, sans effet sur le build client (vérifié par un build identique) : `@jridgewell/sourcemap-codec` 1.5.5 → 1.6.0, `picomatch` 4.0.4 → 4.0.7, `tinyglobby` 0.2.16 → 0.2.17.
+Seuls `package.json` (six scripts Admin listés au §2, cinq devDependencies ajoutées par FE-01) et `package-lock.json` sont partagés. Aucune dépendance de production n'a été ajoutée. Trois paquets transitifs communs ont reçu une montée de version compatible, sans effet sur le build client (vérifié par un build identique) : `@jridgewell/sourcemap-codec` 1.5.5 → 1.6.0, `picomatch` 4.0.4 → 4.0.7, `tinyglobby` 0.2.16 → 0.2.17.
 
 ### Point de vigilance : Tailwind du client
 
@@ -116,7 +115,7 @@ JavaScript, Composition API `<script setup>`, styles scoped, variables `--fm-*` 
 
 | Composant | Props principales | Notes |
 |---|---|---|
-| `AdminButton` | `variant` primary/secondary/danger/ghost · `to` · `icon` · `iconRight` · `disabled` · `loading` · `block` · `type` | `to` → lien interne. `loading` → reste focalisable (`aria-disabled`, clics ignorés) |
+| `AdminButton` | `variant` primary/secondary/danger/ghost · `to` · `icon` · `iconRight` · `disabled` · `loading` · `block` · `type` | `to` → lien interne. `disabled` ou `loading` → aucune navigation ni émission de click, href retiré. `disabled` → hors tabulation ; `loading` seul → focus conservé (`aria-disabled`, `aria-busy`). Bouton natif désactivé par `disabled` |
 | `AdminIcon` | `name` · `size` | Lucide SVG, `aria-hidden`. Noms dans `icon-registry.js`. Un nom inconnu provoque un avertissement Vue en développement (validateur) puis une icône de repli |
 | `StatusBadge` | `tone` success/warning/danger/info/neutral · `dot` | toujours un libellé texte |
 | `DemoTag` | `label` (défaut « Démonstration ») | marque un contenu fictif |
@@ -179,7 +178,9 @@ Les tests imposent ces règles.
   - `admin/dist` : aucune URL hors espaces de noms XML et lien de documentation d'erreur Vue (jamais chargés) ;
   - en navigateur : aucune requête hors `localhost:4174`.
 
-## 8. Tests exécutés (14/11/2026, Node 24.19, après corrections)
+## 8. Preuves historiques (14/11/2026, Node 24.19, avant finalisation)
+
+Les résultats ci-dessous décrivent le socle historique, pas le nouveau correctif. Les preuves de finalisation doivent être rattachées à son SHA local dans le rapport de QA.
 
 | Contrôle | Résultat |
 |---|---|
@@ -205,6 +206,21 @@ Couverture Playwright :
 - Build `admin/dist` sans ressource externe.
 - Après chaque test : aucune requête hors `localhost:4174`, aucun `/api`, aucune erreur console, `localStorage`, `sessionStorage` et cookies vides.
 
+### Audit des dépendances — finalisation du 19/11/2026
+
+Audits exécutés après `npm ci` séparés, sur les lockfiles de la base **avant FE-01** (`7171f83`) et du correctif basé sur `6d202f2`. `package.json` et `package-lock.json` restent identiques à la PR #23 fusionnée ; aucune mise à jour ni commande `npm audit fix`.
+
+| Audit npm | Avant FE-01 | FE-01 intégré / correctif |
+|---|---|---|
+| Complet (`npm audit --json`) | 10 paquets : 1 faible, 1 modéré, 8 élevés | 15 paquets : 1 faible, 6 modérés, 8 élevés |
+| Sans dev (`npm audit --omit=dev --json`) | 7 élevés | 7 élevés, mêmes entrées |
+
+Les dix entrées préexistantes sont inchangées : `@babel/core`, `@vue/server-renderer`, `baseline-browser-mapping`, `browserslist`, `follow-redirects`, `nanoid`, `postcss`, `source-map-js`, `vite`, `vue`.
+
+FE-01 ajoute cinq paquets signalés **modérés**, tous marqués dépendances de développement dans le lockfile : `@vue/test-utils` 2.5.1 → `js-beautify` 2.0.3 → `editorconfig` 3.0.2 / `glob` 13.0.7 → `minimatch` 10.2.6. Deux avis directs : [glob, annulation AbortSignal et parcours après expiration](https://github.com/advisories/GHSA-3g3m-2fjr-6pw4) et [minimatch, amplification globparts](https://github.com/advisories/GHSA-g3hv-75wg-m249) ; les autres entrées héritent de ces dépendances. Ce sont cinq paquets affectés, pas cinq avis indépendants.
+
+Les audits retournent le code 1 (vulnérabilités présentes), jamais PASS sécurité. Aucun ajout d'alerte par le correctif lui-même. La suppression des dépendances de développement n'élimine pas les sept alertes élevées préexistantes. L'exploitabilité propre à l'application n'est pas démontrée par ces décomptes. Toute remédiation exige une autorisation distincte ; le rapport QA conserve les JSON et la comparaison détaillée.
+
 ## 9. Écarts assumés par rapport aux maquettes Stitch
 
 - Palette : texte descriptif de `DESIGN.md` (Royal Blue / Slate), pas les tokens Material 3 du front-matter (décision D1).
@@ -222,7 +238,7 @@ Couverture Playwright :
 - Hébergement Admin non défini : l'origine `https://admin.fluxmoneva.com` n'est que documentaire. DNS, TLS, réécritures SPA, CSP et en-têtes restent à qualifier. Le build ne contient ni script ni style inline, ni ressource tierce.
 - Isolation Tailwind : détectée automatiquement (§3), mais pas empêchée à la source tant que le CSS du client n'est pas restreint (GO séparé sur `src/`).
 - `engines` de `package.json` non aligné sur les tests Admin (§2). Il est hors allowlist et non modifié.
-- Le commit `12c115b`, pris seul, ne contient pas encore de tests : `npm run test:admin` y échoue (« No test files found »). L'historique n'est pas réécrit, ce qui gêne un `git bisect` limité à ce commit.
+- **Historique uniquement :** le commit de développement `12c115b` ne contenait pas de tests. Cette réserve ne concerne pas le commit consolidé `930f11c` publié dans la PR #23, qui contient les tests.
 - Tests e2e limités à Chromium. Pas de lecteur d'écran réel ni de test sur appareil physique.
 - L'opérateur fictif est signalé comme tel par le bandeau, les étiquettes et un texte réservé aux lecteurs d'écran. Le nom affiché ne porte pas de mention visible « fictif ».
 - Captures pleine page : la barre basse fixe apparaît au milieu de l'image (artefact de capture, pas de rendu).

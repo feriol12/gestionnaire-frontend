@@ -56,6 +56,11 @@ onBeforeUnmount(() => clearTimeout(timer))
             {{ loadingDemo ? 'Chargement simulé…' : 'Tester le chargement' }}
           </AdminButton>
         </div>
+        <div class="catalog__row">
+          <AdminButton to="/etats" variant="secondary">Voir les états</AdminButton>
+          <AdminButton to="/etats" disabled>Lien désactivé</AdminButton>
+          <AdminButton to="/etats" loading>Lien en chargement</AdminButton>
+        </div>
         <template #footer><span>Hauteur 40px, rayon 8px, focus visible (contour + halo)</span></template>
       </BaseCard>
 
