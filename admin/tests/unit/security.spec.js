@@ -1,5 +1,6 @@
-// Contrôles statiques et dynamiques de sécurité FE-01 :
+// Contrôles statiques et dynamiques de sécurité FE-01, étendus à FE-02 :
 // aucun appel réseau, aucun stockage, aucune donnée réelle ou financière.
+// FE-02 : exception ciblée et vérifiée pour le champ mot de passe (voir ci-dessous).
 import { describe, expect, it } from 'vitest'
 import * as mocks from '@admin/mocks/dashboard.js'
 import { mountAt } from './helpers.js'
@@ -22,7 +23,7 @@ const forbiddenInSources = [
   ['document.cookie', /document\.cookie/],
   ['garde global', /beforeEach|beforeResolve/],
   ['garde de route', /beforeEnter/],
-  ['champ mot de passe', /type=["']password["']/],
+  ['journalisation', /console\.(log|info|debug|warn|error|trace)/],
   ['Tailwind', /tailwindcss|@tailwind|@apply/],
   ['variable d’environnement', /import\.meta\.env/],
 ]
@@ -52,6 +53,30 @@ describe('Sources Admin', () => {
       .filter(([, content]) => /@import\s+url|url\(\s*["']?(https?:)?\/\/|@font-face/.test(content))
       .map(([file]) => file)
     expect(offenders).toEqual([])
+  })
+})
+
+// FE-02 — Le formulaire de connexion a legitimement besoin d'un champ
+// mot de passe. L'exception est limitee a UN seul fichier : toutes les
+// autres regles globales (reseau, stockage, journalisation, secrets) restent
+// applicables, y compris a ce composant.
+describe('Champ mot de passe FE-02 — exception ciblée', () => {
+  const passwordField = '../../src/components/auth/PasswordField.vue'
+  const pattern = /type=["']password["']/
+
+  it('n’existe que dans le composant dédié autorisé', () => {
+    expect(sources).toHaveProperty(passwordField)
+    const offenders = Object.entries(sources)
+      .filter(([file, content]) => file !== passwordField && pattern.test(content))
+      .map(([file]) => file)
+    expect(offenders).toEqual([])
+  })
+
+  it('le composant dédié n’écrit ni ne journalise le mot de passe', () => {
+    const content = sources[passwordField]
+    expect(pattern.test(content)).toBe(true)
+    expect(content).not.toMatch(/console\.(log|info|debug|warn|error|trace)/)
+    expect(content).not.toMatch(/localStorage|sessionStorage|document\.cookie|indexedDB/)
   })
 })
 
