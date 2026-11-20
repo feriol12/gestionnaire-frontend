@@ -149,12 +149,15 @@ describe('Emplacements réservés', () => {
   })
 
   it.each(['/connexion', '/mfa/enrolement', '/mfa/verification', '/mfa/recuperation', '/reauthentification'])(
-    '%s : réservé FE-02, aucun champ ni secret',
+    '%s : écran FE-02 hors shell, sans donnée financière',
     async (path) => {
       const { wrapper } = await mountAt(path)
-      expect(wrapper.get('main').attributes('data-reserved-for')).toBe('FE-02')
-      expect(wrapper.findAll('form, input, select, textarea')).toHaveLength(0)
+      const main = wrapper.get('main')
+      expect(main.find('h1#admin-page-title').exists()).toBe(true)
       expect(wrapper.find('.admin-shell').exists()).toBe(false)
+      expect(wrapper.text()).not.toMatch(/FCFA|XOF|€|\$|solde|iban/i)
+      // Aucun secret reel ne peut etre pret-rempli dans un champ.
+      expect(wrapper.html()).not.toMatch(/type=["']password["'][^>]*value=["'][^"']+["']/)
     },
   )
 })
