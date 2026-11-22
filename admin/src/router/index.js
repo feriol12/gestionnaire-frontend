@@ -10,7 +10,13 @@ import AdminShell from '@admin/layouts/AdminShell.vue'
 import DashboardView from '@admin/views/DashboardView.vue'
 
 const PlaceholderView = () => import('@admin/views/PlaceholderView.vue')
-const ReservedAuthView = () => import('@admin/views/ReservedAuthView.vue')
+// FE-02 — les emplacements reserves pointent desormais vers de vrais ecrans
+// de simulation. Les chemins, noms et metadonnees FE-01 sont inchanges.
+const LoginView = () => import('@admin/views/auth/LoginView.vue')
+const EnrollmentView = () => import('@admin/views/auth/EnrollmentView.vue')
+const MfaChallengeView = () => import('@admin/views/auth/MfaChallengeView.vue')
+const RecoveryView = () => import('@admin/views/auth/RecoveryView.vue')
+const ReauthView = () => import('@admin/views/auth/ReauthView.vue')
 
 export const routes = [
   {
@@ -83,35 +89,35 @@ export const routes = [
       },
     ],
   },
-  // Emplacements réservés FE-02 (aucun formulaire, aucune session).
+  // Ecrans FE-02 : simulation locale, sans garde de route ni appel reseau.
   {
     path: '/connexion',
     name: 'auth-login',
-    component: ReservedAuthView,
+    component: LoginView,
     meta: { title: 'Connexion', reservedFor: 'FE-02' },
   },
   {
     path: '/mfa/enrolement',
     name: 'auth-mfa-enrollment',
-    component: ReservedAuthView,
+    component: EnrollmentView,
     meta: { title: 'Enrôlement MFA', reservedFor: 'FE-02' },
   },
   {
     path: '/mfa/verification',
     name: 'auth-mfa-verify',
-    component: ReservedAuthView,
+    component: MfaChallengeView,
     meta: { title: 'Vérification TOTP', reservedFor: 'FE-02' },
   },
   {
     path: '/mfa/recuperation',
     name: 'auth-mfa-recovery',
-    component: ReservedAuthView,
+    component: RecoveryView,
     meta: { title: 'Récupération MFA', reservedFor: 'FE-02' },
   },
   {
     path: '/reauthentification',
     name: 'auth-reauth',
-    component: ReservedAuthView,
+    component: ReauthView,
     meta: { title: 'Réauthentification', reservedFor: 'FE-02' },
   },
 ]

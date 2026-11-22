@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { routes } from '@admin/router'
+import LoginView from '@admin/views/auth/LoginView.vue'
+import EnrollmentView from '@admin/views/auth/EnrollmentView.vue'
+import MfaChallengeView from '@admin/views/auth/MfaChallengeView.vue'
+import RecoveryView from '@admin/views/auth/RecoveryView.vue'
+import ReauthView from '@admin/views/auth/ReauthView.vue'
 import { mountAt } from './helpers.js'
 
 function flatten(list, parent = '') {
@@ -19,11 +24,22 @@ describe('Router Admin', () => {
     )
   })
 
-  it('réserve les emplacements FE-02 hors du shell, sans composant de formulaire', () => {
-    const reserved = all.filter((r) => r.meta?.reservedFor === 'FE-02').map((r) => r.fullPath)
-    expect(reserved.sort()).toEqual(
+  it('utilise les cinq routes FE-02 réservées, sans en inventer', async () => {
+    const reserved = all.filter((r) => r.meta?.reservedFor === 'FE-02')
+    expect(reserved.map((r) => r.fullPath).sort()).toEqual(
       ['/connexion', '/mfa/enrolement', '/mfa/recuperation', '/mfa/verification', '/reauthentification'].sort(),
     )
+    const expected = {
+      'auth-login': LoginView,
+      'auth-mfa-enrollment': EnrollmentView,
+      'auth-mfa-verify': MfaChallengeView,
+      'auth-mfa-recovery': RecoveryView,
+      'auth-reauth': ReauthView,
+    }
+    for (const route of reserved) {
+      const loaded = await route.component()
+      expect(loaded.default).toBe(expected[route.name])
+    }
   })
 
   it("n'utilise aucun garde de route (beforeEnter) ni redirection", () => {
