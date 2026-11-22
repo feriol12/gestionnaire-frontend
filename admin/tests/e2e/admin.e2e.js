@@ -17,7 +17,7 @@ const screens = [
   { path: '/', name: 'tableau-de-bord' },
   { path: '/etats', name: 'etats-simules' },
   { path: '/composants', name: 'composants' },
-  { path: '/utilisateurs', name: 'module-reserve' },
+  { path: '/utilisateurs', name: 'utilisateurs' },
   { path: '/connexion', name: 'reserve-fe02' },
 ]
 
@@ -178,13 +178,20 @@ test.describe('Clavier et focus (1440px)', () => {
     expect(outline).not.toBe('none')
   })
 
-  test("retour d'un emplacement FE-02 vers le shell : focus sur le titre", async ({ page }) => {
-    await page.goto('/connexion')
+  test('retour navigateur depuis FE-02 vers le shell : focus sur le titre', async ({ page }) => {
+    await page.goto('/etats')
     await settle(page)
-    await page.getByRole('link', { name: 'Retour au tableau de bord (démonstration)' }).click()
-    await expect(page).toHaveURL(/\/$/)
+    // FE-02 a remplacé le placeholder : son ancien lien de retour n'existe plus.
+    // Exercer une vraie transition SPA puis le retour de l'historique navigateur.
+    await page.getByRole('link', { name: 'Se reconnecter' }).click()
+    await expect(page).toHaveURL(/\/connexion$/)
     await expect(page.locator('#admin-page-title')).toBeFocused()
-    await expect(page.locator('#admin-page-title')).toHaveText('Tableau de bord')
+    await expect(page.locator('.admin-shell')).toHaveCount(0)
+    await page.goBack()
+    await expect(page).toHaveURL(/\/etats$/)
+    await expect(page.locator('.admin-shell')).toBeVisible()
+    await expect(page.locator('#admin-page-title')).toBeFocused()
+    await expect(page.locator('#admin-page-title')).toHaveText('États simulés')
   })
 
   test('du shell vers un emplacement FE-02 : focus sur son titre', async ({ page }) => {
