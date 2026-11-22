@@ -32,12 +32,14 @@ export const routes = [
       {
         path: 'utilisateurs',
         name: 'users',
-        component: PlaceholderView,
-        meta: {
-          title: 'Utilisateurs',
-          subtitle: 'Module réservé',
-          placeholder: { icon: 'users', module: 'Gestion des comptes utilisateurs' },
-        },
+        component: () => import('@admin/views/users/UsersView.vue'),
+        meta: { title: 'Utilisateurs', subtitle: 'Répertoire fictif · Lecture seule' },
+      },
+      {
+        path: 'utilisateurs/:id(\\d+)',
+        name: 'user-detail',
+        component: () => import('@admin/views/users/UserDetailView.vue'),
+        meta: { title: 'Fiche utilisateur', subtitle: 'Informations administratives fictives' },
       },
       {
         path: 'audit',

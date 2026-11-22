@@ -140,7 +140,7 @@ describe('États simulés', () => {
 })
 
 describe('Emplacements réservés', () => {
-  it.each(['/utilisateurs', '/audit', '/notifications', '/securite'])('%s : placeholder sans formulaire', async (path) => {
+  it.each(['/audit', '/notifications', '/securite'])('%s : placeholder sans formulaire', async (path) => {
     const { wrapper } = await mountAt(path)
     const main = wrapper.get('main')
     expect(main.find('[data-placeholder="true"]').exists()).toBe(true)
