@@ -51,6 +51,25 @@ export const routes = [
           placeholder: { icon: 'audit', module: "Consultation du journal d'audit" },
         },
       },
+      // FE-05 : routes additives de simulation, sans garde de sécurité.
+      {
+        path: 'simulations/statuts',
+        name: 'status-demo',
+        component: () => import('@admin/views/status/StatusDemoView.vue'),
+        meta: { title: 'Simulations de statut', subtitle: 'FE-05 · Comptes fictifs uniquement' },
+      },
+      {
+        path: 'utilisateurs/:id(\\d+)/suspension-simulee',
+        name: 'status-suspend',
+        component: () => import('@admin/views/status/StatusTransitionView.vue'),
+        meta: { title: 'Suspension simulée', subtitle: 'FE-05 · Aucun effet réel' },
+      },
+      {
+        path: 'utilisateurs/:id(\\d+)/reactivation-simulee',
+        name: 'status-reactivate',
+        component: () => import('@admin/views/status/StatusTransitionView.vue'),
+        meta: { title: 'Réactivation simulée', subtitle: 'FE-05 · Aucun effet réel' },
+      },
       {
         path: 'notifications',
         name: 'notifications',
