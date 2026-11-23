@@ -120,3 +120,81 @@ export const adminInfo = Object.freeze([
 ])
 
 export const demoNotificationsCount = 3
+
+// FE-03 — Jeux de donnees FICTIFS supplementaires pour le tableau de bord
+// non financier. Regles identiques : figures, memoire, aucune requete, aucun
+// stockage, adresses uniquement sous example.test. Les definitions sont
+// explicites pour eviter toute presentation de valeurs simulees comme reelles.
+export const dashboardScenarios = Object.freeze([
+  { value: 'nominal', label: 'Nominal', hint: 'Evenements fictifs complets' },
+  { value: 'loading', label: 'Chargement', hint: 'Squelettes simules' },
+  { value: 'empty', label: 'Vide', hint: 'Aucun evenement de supervision' },
+  { value: 'error', label: 'Erreur simulée', hint: 'Aucun appel reel' },
+])
+
+// Total 142850 = 12 + 27 + 142811, coheremment avec le KPI "Total des utilisateurs".
+export const administrativeBreakdown = Object.freeze([
+  {
+    id: 'supervisors',
+    label: 'Comptes de supervision',
+    value: 12,
+    definition: 'Comptes fictifs dedies a la supervision ; libelle purement illustratif.',
+    tone: 'info',
+  },
+  {
+    id: 'review',
+    label: 'Comptes en verification',
+    value: 27,
+    definition: 'Comptes fictifs en attente d’une revue administrative simulee.',
+    tone: 'warning',
+  },
+  {
+    id: 'standard',
+    label: 'Comptes standards',
+    value: 142811,
+    definition: 'Comptes fictifs sans privilege de supervision.',
+    tone: 'success',
+  },
+])
+
+// Inscriptions fictives sur sept jours, sans rapport avec une activite reelle.
+export const registrationSeries = Object.freeze([
+  { day: 'Lun', value: 18 },
+  { day: 'Mar', value: 24 },
+  { day: 'Mer', value: 15 },
+  { day: 'Jeu', value: 31 },
+  { day: 'Ven', value: 27 },
+  { day: 'Sam', value: 11 },
+  { day: 'Dim', value: 9 },
+])
+
+export const supervisionEvents = Object.freeze([
+  {
+    id: 'sup-demo-01',
+    time: '09:12',
+    label: 'Nouvelle demande de verification de compte',
+    subject: 'camille.d@example.test',
+    tone: 'info',
+  },
+  {
+    id: 'sup-demo-02',
+    time: '10:45',
+    label: 'Controle de routine des acces administrative',
+    subject: 'systeme (demonstration)',
+    tone: 'success',
+  },
+  {
+    id: 'sup-demo-03',
+    time: '13:20',
+    label: 'Signalement fictif de statut a examiner',
+    subject: 'user_44102@example.test',
+    tone: 'warning',
+  },
+])
+
+export const dashboardStateMessages = Object.freeze({
+  loading: 'Chargement simule des evenements de supervision…',
+  empty: 'Aucun evenement de supervision dans ce jeu fictif.',
+  error: 'Erreur simulee : aucune requete n’a ete envoyee.',
+  recovered: 'Reprise simulee : evenements fictifs recharges.',
+})

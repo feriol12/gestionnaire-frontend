@@ -1,7 +1,7 @@
 <script setup>
 // Tableau de bord de démonstration : indicateurs, activité d'audit, graphique
 // et informations, uniquement à partir des données fictives de mocks/.
-import { onBeforeUnmount, ref } from 'vue'
+import { nextTick, onBeforeUnmount, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import ActivityChart from '@admin/components/ActivityChart.vue'
 import AdminButton from '@admin/components/AdminButton.vue'
@@ -12,13 +12,32 @@ import DemoTag from '@admin/components/DemoTag.vue'
 import KpiCard from '@admin/components/KpiCard.vue'
 import SkeletonBlock from '@admin/components/SkeletonBlock.vue'
 import StatusBadge from '@admin/components/StatusBadge.vue'
-import { accessActivity, adminInfo, auditEvents, kpis } from '@admin/mocks/dashboard.js'
+import DashboardMetricPanel from '@admin/components/dashboard/DashboardMetricPanel.vue'
+import DashboardRegistrationTrend from '@admin/components/dashboard/DashboardRegistrationTrend.vue'
+import DashboardSupervisionPanel from '@admin/components/dashboard/DashboardSupervisionPanel.vue'
+import {
+  accessActivity,
+  adminInfo,
+  administrativeBreakdown,
+  auditEvents,
+  dashboardScenarios,
+  dashboardStateMessages,
+  kpis,
+  registrationSeries,
+  supervisionEvents,
+} from '@admin/mocks/dashboard.js'
 
 const SIMULATED_DELAY_MS = 900
+const FE03_RECOVERY_MS = 600
 
 const activityLoading = ref(false)
 const activityStatus = ref('')
 let timer = null
+
+// FE-03 — états de démonstration purement locaux, sans requête ni stockage.
+const fe03State = ref('nominal')
+const fe03Notice = ref('')
+let fe03Timer = null
 
 function replaySimulatedLoad() {
   // Simulation locale : minuterie seulement, aucune requête. Le bouton reste
@@ -32,7 +51,32 @@ function replaySimulatedLoad() {
   }, SIMULATED_DELAY_MS)
 }
 
-onBeforeUnmount(() => clearTimeout(timer))
+function setFe03State(next) {
+  if (fe03Timer !== null) {
+    clearTimeout(fe03Timer)
+    fe03Timer = null
+  }
+  fe03State.value = next
+  fe03Notice.value = next === 'nominal' ? dashboardStateMessages.recovered : ''
+}
+
+function retryFe03() {
+  if (fe03Timer !== null) clearTimeout(fe03Timer)
+  fe03State.value = 'loading'
+  fe03Notice.value = dashboardStateMessages.loading
+  fe03Timer = setTimeout(async () => {
+    fe03Timer = null
+    fe03State.value = 'nominal'
+    fe03Notice.value = dashboardStateMessages.recovered
+    await nextTick()
+    document.getElementById('fe03-status')?.focus()
+  }, FE03_RECOVERY_MS)
+}
+
+onBeforeUnmount(() => {
+  clearTimeout(timer)
+  if (fe03Timer !== null) clearTimeout(fe03Timer)
+})
 
 const quickActions = [
   {
@@ -68,6 +112,50 @@ const quickActions = [
         </ul>
       </div>
       <DemoTag label="Prototype Admin V1" class="dashboard__hero-tag" />
+    </section>
+
+    <section class="fe03" aria-labelledby="fe03-title">
+      <div class="fe03__head">
+        <div>
+          <h2 id="fe03-title" class="fe03__title">Supervision non financière</h2>
+          <p class="fe03__note">Données fictives et non financières — aucune statistique réelle.</p>
+        </div>
+        <DemoTag label="FE-03 — Simulation" />
+      </div>
+
+      <div class="fe03__scenarios" role="group" aria-label="Scénario de démonstration FE-03">
+        <button
+          v-for="scenario in dashboardScenarios"
+          :key="scenario.value"
+          type="button"
+          class="fe03__scenario"
+          :class="{ 'is-active': fe03State === scenario.value }"
+          :aria-pressed="fe03State === scenario.value ? 'true' : 'false'"
+          @click="setFe03State(scenario.value)"
+        >
+          {{ scenario.label }}
+          <span class="fe03__scenario-hint">{{ scenario.hint }}</span>
+        </button>
+      </div>
+
+      <p id="fe03-status" class="fe03__status" role="status" tabindex="-1">
+        {{ fe03Notice || 'Sélectionnez un scénario de démonstration.' }}
+      </p>
+
+      <div class="fe03__grid">
+        <DashboardMetricPanel
+          title="Répartition administrative fictive"
+          description="Trois catégories illustratives dont la somme correspond au total fictif du parc."
+          :metrics="administrativeBreakdown"
+        />
+        <DashboardRegistrationTrend :points="registrationSeries" />
+        <DashboardSupervisionPanel
+          :state="fe03State"
+          :events="supervisionEvents"
+          :messages="dashboardStateMessages"
+          @retry="retryFe03"
+        />
+      </div>
     </section>
 
     <section class="dashboard__kpis" aria-labelledby="dashboard-kpi-title">
@@ -176,6 +264,109 @@ const quickActions = [
 </template>
 
 <style scoped>
+.fe03 {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fm-space-md);
+  padding: var(--fm-space-lg);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--fm-radius-card);
+  background: var(--fm-surface);
+}
+
+.fe03__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--fm-space-sm) var(--fm-space-md);
+}
+
+.fe03__title {
+  margin: 0;
+  font: var(--fm-headline-md);
+}
+
+.fe03__note {
+  margin: var(--fm-space-xs) 0 0;
+  color: var(--fm-text-muted);
+  font: var(--fm-body-sm);
+}
+
+.fe03__scenarios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--fm-space-xs);
+}
+
+.fe03__scenario {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  min-height: var(--fm-control-height);
+  padding: var(--fm-space-xs) var(--fm-space-sm);
+  border: 1px solid var(--fm-border);
+  border-radius: var(--fm-radius-control);
+  background: var(--fm-surface);
+  color: var(--fm-heading);
+  font: var(--fm-label-md);
+  text-align: left;
+  cursor: pointer;
+}
+
+.fe03__scenario.is-active {
+  border-color: var(--fm-primary);
+  background: var(--fm-primary-soft);
+  color: var(--fm-primary-text);
+}
+
+.fe03__scenario:focus-visible {
+  outline: 2px solid var(--fm-primary);
+  outline-offset: 2px;
+}
+
+.fe03__scenario-hint {
+  color: var(--fm-text-muted);
+  font: var(--fm-body-sm);
+}
+
+/* H-01 : le texte d'aide du scénario actif doit garder un contraste AA
+   sur le fond bleu clair ; le token primaire offre 5,8:1 au lieu de 4,1:1. */
+.fe03__scenario.is-active .fe03__scenario-hint {
+  color: var(--fm-primary-text);
+  font-weight: 600;
+}
+
+.fe03__status {
+  margin: 0;
+  color: var(--fm-primary-text);
+  font: var(--fm-body-sm);
+  font-weight: 600;
+}
+
+.fe03__status:focus {
+  outline: none;
+}
+
+.fe03__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--fm-gutter);
+}
+
+@media (min-width: 1024px) {
+  .fe03__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 479px) {
+  .fe03 {
+    padding: var(--fm-space-md);
+  }
+}
+
 .dashboard {
   display: flex;
   flex-direction: column;
