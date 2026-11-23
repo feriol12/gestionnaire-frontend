@@ -331,6 +331,13 @@ const quickActions = [
   font: var(--fm-body-sm);
 }
 
+/* H-01 : le texte d'aide du scénario actif doit garder un contraste AA
+   sur le fond bleu clair ; le token primaire offre 5,8:1 au lieu de 4,1:1. */
+.fe03__scenario.is-active .fe03__scenario-hint {
+  color: var(--fm-primary-text);
+  font-weight: 600;
+}
+
 .fe03__status {
   margin: 0;
   color: var(--fm-primary-text);

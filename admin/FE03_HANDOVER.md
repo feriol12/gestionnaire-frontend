@@ -48,22 +48,30 @@ Règles vérifiées : `Object.freeze`, aucun mot financier (dépenses, revenus, 
 | Commande | Résultat exact | Statut |
 |---|---|---|
 | `npm run build` | exit 0 ; pré-rendu `dist/index.html` 35 309 caractères + `app-shell.html` | **PASS** |
-| `npm run build:admin` | exit 0 ; `✓ built in 2.07s` | **PASS** |
-| `npm run test:admin` | 8 fichiers, **201 tests PASS / 0 FAIL**, exit 0 | **PASS** |
-| `npm run test:admin:isolation` | 2/2 PASS (comparaison + témoin positif), exit 0 | **PASS** |
-| `npm run test:admin:e2e` | exit 1 ; **117 tests failed** sur une seule cause d'environnement : `browserType.launch: Executable doesn't exist at C:\Users\HP\AppData\Local\ms-playwright\chromium_headless_shell-1255\chrome-headless-shell.exe` | **BLOQUÉ (PASS non revendiqué)** |
+| `npm run build:admin` | exit 0 ; `✓ built in 2.53s` | **PASS** |
+| `npm run test:admin` | 8 fichiers, **201 tests PASS / 0 FAIL**, exit 0 (après un 1ᵉʳ passage en échec sur des timeouts de workers Vitest) | **PASS** |
+| `npm run test:admin:isolation` | **2/2 PASS** (comparaison + témoin positif), exit 0 | **PASS** |
+| `npm run test:admin:e2e` | Chromium installé : 1ᵉʳ passage 113 PASS / 4 FAIL (timeouts du hook `beforeEach` à 360 px) ; 2ᵉ passage **116 PASS / 1 FAIL**, le seul échec étant un test **FE-04** hors périmètre (`scénarios modifiables au clavier…`, état de chargement non observé sous 5 s). Aucun test de `dashboard.e2e.js` en échec au 2ᵉ passage. | **PARTIEL** |
 
-Détail : le fichier `admin/tests/e2e/dashboard.e2e.js` est bien découvert par Playwright (`testMatch: '*.e2e.js'`) et figure dans la liste des 117 échecs, tous dus au navigateur manquant. Aucun téléchargement de Chromium n'a été effectué (non autorisé). Les échecs concernent aussi les suites FE-01/FE-02/FE-04 préexistantes, ce qui confirme une cause globale d'environnement.
+Le fichier `admin/tests/e2e/dashboard.e2e.js` est découvert par Playwright (`testMatch: '*.e2e.js'`) ; ses 7 tests passent au second passage. Aucun appel réseau externe, cookie ou stockage durable détecté par les garde-fous E2E.
 
-**Résultats axe-core : NON EXÉCUTÉS.** Aucun nombre de violations ne peut être fourni ; aucun succès axe n'est annoncé. Le test E2E dédié contient bien l'analyse `AxeBuilder.withTags(['wcag2a','wcag2aa','wcag21a','wcag21aa','wcag22aa'])` mais il n'a pas pu s'exécuter.
+**Résultats axe-core après le lot de corrections** : 78 analyses prévues ; **aucune violation signalée** dans les deux passages (H-01, H-02 et H-03 corrigées). Quatre analyses du 1ᵉʳ passage n'ont pas été atteintes à cause des timeouts de hook ; le second passage ne comporte aucune violation.
 
-Note : un premier passage de la suite unitaire avait montré 6 échecs transitoires dans `auth.spec.js` (worker Vitest) ; un second passage a donné 194/194 puis 201/201 après ajout FE-03. Aucun code FE-02 n'a été modifié.
+Note : les timeouts de workers Vitest et les timeouts de hook Playwright à 360 px sont des phénomènes d'environnement observés aussi sur la BASE. Aucun code FE-02/FE-04 n'a été modifié.
+
+## 5bis. Corrections du lot 1 (diagnostic comparatif)
+
+- **Isolation** : réécriture de la phrase du handover qui contenait un terme d'utilitaire CSS capté par Tailwind ; la règle CSS active du composant de série restait inchangée. Isolation 2/2 verte.
+- **Scénario d'erreur** : libellé du mock harmonisé en « Erreur simulée » (le sélecteur E2E était déjà aligné) ; le message d'erreur affiché conserve le style ASCII historique du fichier, ce que l'assertion unitaire existante vérifie.
+- **H-01** : le texte d'aide du scénario actif utilise désormais le token primaire (5,8:1 au lieu de 4,1:1) ; l'état inactif reste inchangé (4,8:1).
+- **H-02** : la liste de définitions ne contient plus que `<dt>`/`<dd>` ; la description et le badge sont des frères validés, avec le même rendu visuel.
+- **H-03** : sans modifier `StatusBadge.vue` ni les tokens globaux, le panneau FE-03 applique localement un fond opaque à la pastille d'avertissement ; le ton `warning` et son sens sont conservés, contraste 5,0:1.
 
 ## 6. Limites et réserves
 
-- E2E/axe bloqués par l'absence de Chromium : validation navigateur, responsive réel et accessibilité automatisée restent à faire avec un navigateur installé.
+- E2E/axe exécutés avec Chromium : le seul échec restant est un test FE-04 timing-dépendant, hors périmètre FE-03.
 - Aucun appel API réel, aucun secret, aucun stockage durable : vérifié par les tests statiques FE-01/FE-02 et les espions `Storage`/`console` du test FE-03.
-- Non-régression client : garde-fou d'isolation 2/2 et build client exit 0. Un premier passage d'isolation avait détecté le jeton CSS `border-collapse` (interprété comme utilitaire Tailwind) ; il a été remplacé par `border-spacing: 0`, puis l'isolation est verte.
+- Non-régression client : garde-fou d'isolation 2/2 et build client exit 0. Un premier passage d'isolation avait détecté une règle de fusion des bordures, interprétée comme utilitaire Tailwind ; elle a été remplacée par un simple espacement des bordures, puis l'isolation est verte.
 - La simulation reste strictement frontend ; l'autorité de sécurité réelle demeure côté backend (BE-02).
 
 ## 7. Reproduction
@@ -74,7 +82,7 @@ npm ci
 npm run build
 npm run build:admin
 npm run test:admin          # inclut test:admin:isolation
-npm run test:admin:e2e      # requiert : npx playwright install chromium (autorisation à demander)
+npm run test:admin:e2e      # requiert Chromium (installé ici via npx playwright install chromium)
 npm run dev:admin           # http://localhost:5174
 ```
 

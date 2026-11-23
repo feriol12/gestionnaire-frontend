@@ -15,14 +15,16 @@ defineProps({
 <template>
   <BaseCard :title="title" :description="description">
     <template #actions><DemoTag label="Données fictives — Démonstration" /></template>
-    <dl class="fe03-metrics">
+    <div class="fe03-metrics">
       <div v-for="metric in metrics" :key="metric.id" class="fe03-metrics__item">
-        <dt class="fe03-metrics__label">{{ metric.label }}</dt>
-        <dd class="fe03-metrics__value">{{ metric.value.toLocaleString('fr-FR') }}</dd>
+        <dl class="fe03-metrics__facts">
+          <dt class="fe03-metrics__label">{{ metric.label }}</dt>
+          <dd class="fe03-metrics__value">{{ metric.value.toLocaleString('fr-FR') }}</dd>
+        </dl>
         <p class="fe03-metrics__definition">{{ metric.definition }}</p>
         <StatusBadge v-if="metric.tone" :tone="metric.tone" :dot="false">Valeur fictive</StatusBadge>
       </div>
-    </dl>
+    </div>
   </BaseCard>
 </template>
 
@@ -44,6 +46,19 @@ defineProps({
   border: 1px solid var(--fm-border);
   border-radius: var(--fm-radius-card);
   background: var(--fm-canvas);
+}
+
+.fe03-metrics__facts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--fm-space-xs);
+  margin: 0;
+}
+
+/* H-03 : fond opaque blanc pour la pastille d'avertissement dans ce panneau
+   uniquement ; le ton warning et son libellé restent inchangés (5,0:1). */
+.fe03-metrics__item :deep(.status-badge--warning) {
+  background: var(--fm-surface);
 }
 
 .fe03-metrics__label {

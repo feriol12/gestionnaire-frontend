@@ -129,7 +129,7 @@ export const dashboardScenarios = Object.freeze([
   { value: 'nominal', label: 'Nominal', hint: 'Evenements fictifs complets' },
   { value: 'loading', label: 'Chargement', hint: 'Squelettes simules' },
   { value: 'empty', label: 'Vide', hint: 'Aucun evenement de supervision' },
-  { value: 'error', label: 'Erreur simulee', hint: 'Aucun appel reel' },
+  { value: 'error', label: 'Erreur simulée', hint: 'Aucun appel reel' },
 ])
 
 // Total 142850 = 12 + 27 + 142811, coheremment avec le KPI "Total des utilisateurs".
